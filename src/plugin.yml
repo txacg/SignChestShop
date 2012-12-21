@@ -1,0 +1,10 @@
+name: SignChestShop
+main: net.skycraftmc.SignChestShop.SignChestShopPlugin
+version: 1.2-dev-1
+author: Technius
+depend: [Vault]
+commands:
+    signchestshop:
+         description: SignChestShop commands
+         usage: /signchestshop <args>
+         aliases: [scs]

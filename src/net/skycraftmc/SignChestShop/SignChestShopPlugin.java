@@ -1,0 +1,926 @@
+package net.skycraftmc.SignChestShop;
+
+import java.io.DataInput;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import net.milkbowl.vault.economy.Economy;
+import net.minecraft.server.NBTBase;
+import net.minecraft.server.NBTTagCompound;
+import net.minecraft.server.NBTTagList;
+import net.minecraft.server.NBTTagString;
+
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.Sign;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.craftbukkit.inventory.CraftItemStack;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryView;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.material.MaterialData;
+import org.bukkit.plugin.RegisteredServiceProvider;
+import org.bukkit.plugin.java.JavaPlugin;
+
+public class SignChestShopPlugin extends JavaPlugin implements Listener
+{
+	private StringConfig config;
+	protected NBTTagCompound data;
+	protected ArrayList<InventoryView>buy = new ArrayList<InventoryView>();
+	protected ArrayList<InventoryView>sell = new ArrayList<InventoryView>();
+	private HashMap<InventoryView, Block>create = new HashMap<InventoryView, Block>();
+	private HashMap<InventoryView, DKey<Double, NBTTagCompound>>price = 
+			new HashMap<InventoryView, DKey<Double, NBTTagCompound>>();
+	private HashMap<InventoryView, NBTTagCompound>edit = 
+			new HashMap<InventoryView, NBTTagCompound>();
+	private Economy econ;
+	private Logger log;
+	private SignChestShopAPI api;
+	public static final int MODE_BUY = 0;
+	public static final int MODE_SELL = 1;
+	protected static SignChestShopPlugin inst;
+	public void onEnable()
+	{
+		inst = this;
+		log = getLogger();
+		RegisteredServiceProvider<Economy>ecoprov = 
+				getServer().getServicesManager().getRegistration(Economy.class);
+		if(ecoprov == null)
+		{
+			log.warning("No economy plugin detected.  Disabling.");
+			setEnabled(false);
+			return;
+		}
+		econ = ecoprov.getProvider();
+		if(!getDataFolder().exists())getDataFolder().mkdir();
+		File cfile = new File(getDataFolder(), "config.txt");
+		config = new StringConfig(cfile);
+		if(!cfile.exists())writeConfig();
+		try {
+			config.load();
+		} catch (IOException ioe) {
+			log.log(Level.SEVERE, "Could not load config, reverting to defaults", ioe);
+		}
+		File dat = new File(getDataFolder(), "data.dat");
+		data = new NBTTagCompound();
+		if(dat.exists())
+		{
+			boolean c = false;
+			Exception e = null;
+			try
+			{
+				DataInputStream dis = new DataInputStream(new FileInputStream(dat));
+				NBTBase b = NBTBase.b(dis);
+				if(b != null)
+				{
+					if(b instanceof NBTTagCompound)data = (NBTTagCompound)b;
+					else c = true;
+				}
+				else c = true;
+				dis.close();
+			}
+			catch(IOException ioe)
+			{
+				e = ioe;
+				c = true;
+			}
+			if(c)
+			{
+				try
+				{
+					loadOld(dat);
+					log.info("Converted old SignChestShopData");
+				}catch(Exception ea)
+				{
+					log.warning("Failed to load/convert data!");
+					e = ea;
+				}
+				if(e != null)e.printStackTrace();
+			}
+		}
+		else data.set("Shops", new NBTTagList());
+		integCheck();
+		getServer().getPluginManager().registerEvents(this, this);
+		api = new SignChestShopAPI(this);
+	}
+	/**
+	 * Returns the plugin's API
+	 * @return The API
+	 */
+	public SignChestShopAPI getAPI()
+	{
+		return api;
+	}
+	public void onDisable()
+	{
+		File f = getDataFolder();
+		if(!f.exists())f.mkdir();
+		File dat = new File(f, "data.dat");
+		try
+		{
+			DataOutputStream dos = new DataOutputStream(new FileOutputStream(dat));
+			try
+			{
+				NBTBase.a(data, dos);
+			}
+			catch(Exception e)
+			{
+				e.printStackTrace();
+			}
+			dos.flush();
+			dos.close();
+		}
+		catch(IOException ioe)
+		{
+			ioe.printStackTrace();
+		}
+		for(InventoryView i:buy)i.close();
+		buy.clear();
+		for(InventoryView i:sell)i.close();
+		sell.clear();
+		for(Map.Entry<InventoryView, Block>k:create.entrySet())k.getKey().close();
+		create.clear();
+		for(Map.Entry<InventoryView, DKey<Double, NBTTagCompound>> k:price.entrySet())k.getKey().close();
+		price.clear();
+		for(Map.Entry<InventoryView, NBTTagCompound> k:edit.entrySet())k.getKey().close();
+		edit.clear();
+	}
+	@EventHandler(priority = EventPriority.MONITOR)
+	public void interact(PlayerInteractEvent event)
+	{
+		if(event.isCancelled())return;
+		if(event.getAction() != Action.RIGHT_CLICK_BLOCK)return;
+		Block b = event.getClickedBlock();
+		if(b == null)return;
+		if(b.getType() != Material.SIGN_POST && b.getType() != Material.WALL_SIGN)return;
+		//Sign s = (Sign)b.getState();
+		event.setCancelled(true);
+		NBTTagCompound shop = getShopData(b);
+		if(shop == null)return;
+		int mode = shop.getInt("mode");
+		String title = "Shop";
+		if(mode == MODE_BUY)
+		{
+			title = "Buy";
+			if(event.getPlayer().hasPermission("scs.buy") && config.getBoolean("buy.perms", Options.DEFAULT_BUY_PERMS))
+			{
+				event.getPlayer().sendMessage(color(config.getString("messages.buy.noperm", Messages.DEFAULT_BUY_NOPERM)));
+				return;
+			}
+		}
+		else if(mode == MODE_SELL)
+		{
+			title = "Sell";
+			if(event.getPlayer().hasPermission("scs.sell") && config.getBoolean("sell.perms", Options.DEFAULT_SELL_PERMS))
+			{
+				event.getPlayer().sendMessage(color(config.getString("messages.sell.noperm", Messages.DEFAULT_SELL_NOPERM)));
+				return;
+			}
+		}
+		Inventory i = getShop(shop, true, title);
+		InventoryView iv = event.getPlayer().openInventory(i);
+		if(mode == MODE_BUY)buy.add(iv);
+		else if(mode == MODE_SELL)sell.add(iv);
+	}
+	@EventHandler(priority = EventPriority.LOWEST)
+	public void close(InventoryCloseEvent event)
+	{
+		if(buy.contains(event.getView()))buy.remove(event.getView());
+		if(sell.contains(event.getView()))sell.remove(event.getView());
+		if(!(event.getPlayer() instanceof Player))return;
+		Player player = (Player)event.getPlayer();
+		if(create.containsKey(event.getView()))
+		{
+			ArrayList<ItemStack>c = new ArrayList<ItemStack>();
+			for(ItemStack i:event.getInventory().getContents())
+			{
+				c.add(i);
+			}
+			if(c.isEmpty())
+			{
+				player.sendMessage(var(config.getString("message.create.cancel", Messages.DEFAULT_CREATE_CANCEL), player));
+				return;
+			}
+			Block b = create.get(event.getView());
+			Sign s = (Sign)b.getState();
+			Location bloc = b.getLocation();
+			NBTTagCompound shop = new NBTTagCompound();
+			shop.setDouble("x", bloc.getX());
+			shop.setDouble("y", bloc.getY());
+			shop.setDouble("z", bloc.getZ());
+			shop.setString("world", bloc.getWorld().getName());
+			NBTTagList items = new NBTTagList();
+			for(ItemStack i:c)
+			{
+				NBTTagCompound copy = new NBTTagCompound();
+				if(i != null)nmsStack(i).save(copy);
+				items.add(copy);
+			}
+			shop.set("items", items);
+			data.getList("Shops").add(shop);
+			player.sendMessage(var(config.getString("message.create.success", Messages.DEFAULT_CREATE_SUCCESS), player));
+			s.setLine(0, ChatColor.AQUA + "Shop");
+			s.setLine(1, "Right click to");
+			s.setLine(2, "open!");
+			s.update();
+			if(config.getBoolean("log.create", Options.DEFAULT_LOG_SHOP_CREATION))
+					log.info(player.getName() + " created a SignChestShop at " + bloc.getX() + ", " + 
+							bloc.getY() + ", " + bloc.getZ() + " at world " + bloc.getWorld().getName());
+			create.remove(event.getView());
+		}
+		else if(price.containsKey(event.getView()))
+		{
+			player.sendMessage(var(config.getString("message.price.cancel", Messages.DEFAULT_PRICE_CANCEL), player));
+			price.remove(event.getView());
+			return;
+		}
+		else if(edit.containsKey(event.getView()))
+		{
+			NBTTagCompound shop = edit.get(event.getView());
+			NBTTagList items = new NBTTagList();
+			Inventory inv = event.getView().getTopInventory();
+			for(ItemStack i:inv.getContents())
+			{
+				if(i != null)
+				{
+					NBTTagCompound copy = new NBTTagCompound();
+					nmsStack(i).save(copy);
+					items.add(copy);
+				}
+				else items.add(new NBTTagCompound());
+			}
+			shop.set("items", items);
+			player.sendMessage(var(config.getString("message.edit", Messages.DEFAULT_EDIT), player));
+			edit.remove(event.getView());
+		}
+	}
+	@EventHandler
+	@SuppressWarnings("deprecation")
+	public void click(InventoryClickEvent event)
+	{
+		Player player = null;
+		if(event.getWhoClicked() instanceof Player)player = (Player)event.getWhoClicked();
+		if(player == null)return;
+		boolean top = event.getRawSlot() < event.getView().getTopInventory().getSize();
+		if(buy.contains(event.getView()))
+		{
+			if(top)
+			{
+				event.setCancelled(true);
+				ItemStack t = event.getCurrentItem();
+				if(t == null || t.getType() == Material.AIR)
+				{
+					player.updateInventory();
+					return;
+				}
+				ItemStack i = t.clone();
+				net.minecraft.server.ItemStack nms = nmsStack(i);
+				if(!nms.getTag().hasKey("scs_price"))
+				{
+					event.setCancelled(true);
+					player.updateInventory();
+					return;
+				}
+				if(player.getItemOnCursor().getType() != Material.AIR)
+				{
+					if(player.getItemOnCursor().getType() != t.getType())return;
+					net.minecraft.server.ItemStack pnms = nmsStack(player.getItemOnCursor().clone());
+					net.minecraft.server.ItemStack nnms = nms.cloneItemStack();
+					nnms.tag.remove("scs_price");
+					NBTTagCompound display = nnms.tag.getCompound("display");
+					NBTTagList lore = display.getList("Lore");
+					if(lore.size() == 1)display.remove("Lore");
+					else
+					{
+						NBTTagList newlore = new NBTTagList();
+						for(int x = 0; x < lore.size() - 1; x ++)
+							newlore.add(lore.get(x));
+						display.set("Lore", newlore);
+					}
+					if(display.c().size() == 0)nms.tag.remove("display");
+					if(nnms.tag.c().size() == 0)nms.setTag(null);
+					if(nnms.tag != null && pnms.tag != null)
+					{
+						if(nnms.tag == null ^ pnms.tag == null)return;
+						else if(!nnms.equals(pnms))return;
+					}
+				}
+				if(i.getType() == Material.AIR)return;
+				int a = i.getType().getMaxStackSize();
+				int amount = 1;
+				double price = nms.getTag().getDouble("scs_price");
+				String buymode = config.getString("buy.mode", "single");
+				if(buymode.equalsIgnoreCase("stack") || 
+						(event.isShiftClick() && config.getBoolean("buy.shiftclick", true)))amount = a;
+				else if(buymode.equalsIgnoreCase("amount"))amount = i.getAmount();
+				else amount = 1;
+				if(config.getBoolean("buy.permsid", Options.DEFAULT_BUY_PERMSID))
+				{
+					if(!player.hasPermission("scs.buy." + i.getTypeId()) && !player.hasPermission("scs.buy.*"))
+					{
+						player.sendMessage(var(config.getString("message.buy.noperm", Messages.DEFAULT_BUY_NOPERM), player));
+						player.updateInventory();
+						return;
+					}
+				}
+				int iamount = player.getItemOnCursor().getAmount();
+				if(amount + iamount > a)amount = a - iamount;
+				price = price*amount;
+				String curname = (price == 1 ? econ.currencyNameSingular() : econ.currencyNamePlural());
+				if(!curname.isEmpty())curname = " " + curname;
+				if(!econ.has(player.getName(), price))
+				{
+					player.sendMessage(varBuy(config.getString("message.buy.fail", Messages.DEFAULT_BUY_FAIL), player,
+							amount, price + curname, price));
+					event.setCancelled(true);
+					return;
+				}
+				if(price != 0)
+				{
+					econ.withdrawPlayer(player.getName(), price);
+					player.sendMessage(varBuy(config.getString("message.buy.success", 
+							Messages.DEFAULT_BUY_SUCCESS), player, amount, price + curname, price));
+				}
+				else player.sendMessage(varBuy(config.getString("message.buy.free", 
+						Messages.DEFAULT_BUY_FREE), player, amount, price + curname, price));
+				nms.tag.remove("scs_price");
+				NBTTagCompound display = nms.getTag().getCompound("display");
+				NBTTagList lore = display.getList("Lore");
+				if(lore.size() == 1)display.remove("Lore");
+				else
+				{
+					NBTTagList newlore = new NBTTagList();
+					for(int x = 0; x < lore.size() - 1; x ++)
+						newlore.add(lore.get(x));
+					display.set("Lore", newlore);
+				}
+				if(display.c().size() == 0)nms.tag.remove("display");
+				if(nms.tag.c().size() == 0)nms.setTag(null);
+				i.setAmount(amount + iamount);
+				player.setItemOnCursor(i);
+			}
+			else if((top && player.getItemOnCursor().getType() != Material.AIR && 
+					event.getSlot() != -999) || (!top && event.getCurrentItem().getType() != Material.AIR
+					&& event.isShiftClick()))
+			{
+				player.sendMessage(var(config.getString("message.buy.invalid", Messages.DEFAULT_BUY_INVALID), player));
+				player.updateInventory();
+				event.setCancelled(true);
+			}
+		}
+		else if(sell.contains(event.getView()))
+		{
+			if(top)
+			{
+				ItemStack i = player.getItemOnCursor();
+				ItemStack t = event.getCurrentItem();
+				event.setCancelled(true);
+				player.updateInventory();
+				if(i.getType() == Material.AIR)return;
+				if(t.getType() == Material.AIR)
+				{
+					player.sendMessage(var(config.getString("message.sell.invalid", Messages.DEFAULT_SELL_INVALID), player));
+					return;
+				}
+				if(t.getType() != i.getType())return;
+				net.minecraft.server.ItemStack nms = nmsStack(t);
+				if(!nms.getTag().hasKey("scs_price"))
+				{
+					event.setCancelled(true);
+					return;
+				}
+				double price = nms.getTag().getDouble("scs_price");
+				if(config.getBoolean("sell.permsid", Options.DEFAULT_SELL_PERMSID))
+				{
+					if(!player.hasPermission("scs.sell." + i.getTypeId()) && !player.hasPermission("scs.sell.*"))
+					{
+						player.sendMessage(var(config.getString("message.sell.noperm", Messages.DEFAULT_SELL_NOPERM), player));
+						player.updateInventory();
+						return;
+					}
+				}
+				int amount = i.getAmount();
+				price *= amount;
+				String curname = (price == 1 ? econ.currencyNameSingular() : econ.currencyNamePlural());
+				if(!curname.isEmpty())curname = " " + curname;
+				econ.depositPlayer(player.getName(), price);
+				player.sendMessage(varBuy(config.getString("message.sell.success", 
+						Messages.DEFAULT_SELL_SUCCESS), player, amount, price + curname, price));
+				player.setItemOnCursor(null);
+			}
+			else if((top && player.getItemOnCursor().getType() != Material.AIR && 
+					event.getSlot() != -999) || (!top && event.getCurrentItem().getType() != Material.AIR
+					&& event.isShiftClick()))
+			{
+				player.sendMessage(var(config.getString("message.sell.invalid", Messages.DEFAULT_SELL_INVALID), player));
+				player.updateInventory();
+				event.setCancelled(true);
+			}
+		}
+		else if(price.containsKey(event.getView()))
+		{
+			DKey<Double, NBTTagCompound> dkey = price.get(event.getView());
+			double p = dkey.getKey();
+			NBTTagCompound shop = dkey.getValue();
+			price.remove(event.getView());
+			if(!top)
+			{
+				player.sendMessage(var(config.getString("message.price.cancel", Messages.DEFAULT_PRICE_CANCEL), player));
+				event.setCancelled(true);
+				event.getView().close();
+				return;
+			}
+			event.setCancelled(true);
+			NBTTagList items = shop.getList("items");
+			NBTTagCompound item = (NBTTagCompound) items.get(event.getSlot());
+			if(!item.hasKey("tag"))item.setCompound("tag", new NBTTagCompound());
+			NBTTagCompound tag = item.getCompound("tag");
+			if(p >= 0)tag.setDouble("scs_price", p);
+			else tag.remove("scs_price");
+			event.getView().close();
+			player.sendMessage(var(config.getString("message.price.set", Messages.DEFAULT_PRICE_SET), player));
+		}
+		else if(edit.containsKey(event.getView()))
+		{
+			boolean sclick = top && event.isShiftClick();
+			ItemStack i = player.getItemOnCursor().clone();
+			if(i.getType() == Material.AIR && sclick)i = event.getCurrentItem();
+			if(i.getType() != Material.AIR)
+			{
+				if(!top || sclick)
+				{
+					net.minecraft.server.ItemStack nms = nmsStack(i);
+					NBTTagCompound tag = nms.getTag();
+					if(tag != null)
+					{
+						if(tag.hasKey("scs_price"))
+						{
+							tag.remove("scs_price");
+							if(tag.c().size() == 0)nms.setTag(null);
+							event.setCursor(new CraftItemStack(nms));
+							final Player runnablePlayer = player;
+							getServer().getScheduler().scheduleSyncDelayedTask(this,
+									new Runnable()
+									{
+										public void run() 
+										{
+											runnablePlayer.updateInventory();
+										}
+									});
+						}
+					}
+				}
+			}
+		}
+	}
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+	public void breakBlock(BlockBreakEvent event)
+	{
+		Block b = event.getBlock();
+		Block sb = b;
+		NBTTagCompound c = getShopData(b);
+		if(c == null)
+		{
+			Block[] d = {b, b.getRelative(BlockFace.EAST), b.getRelative(BlockFace.WEST),
+					b.getRelative(BlockFace.NORTH), b.getRelative(BlockFace.SOUTH),
+					b.getRelative(BlockFace.UP)};
+			for(Block s:d)
+			{
+				MaterialData md = s.getState().getData();
+				if(!(md instanceof org.bukkit.material.Sign))continue;
+				org.bukkit.material.Sign e = (org.bukkit.material.Sign)md;
+				if(e.getAttachedFace() == s.getFace(b))
+				{
+					c = getShopData(s);
+					sb = s;
+				}
+				if(c != null)break;
+			}
+		}
+		if(c != null)
+		{
+			Player player = event.getPlayer();
+			boolean a = player.hasPermission("signchestshop.create");
+			if(a)player.sendMessage(color(config.getString("message.break.perm",
+					Messages.DEFAULT_BREAK_PERM)));
+			else player.sendMessage(var(config.getString(
+					"message.break.noperm", Messages.DEFAULT_BREAK_NOPERM), player));
+			event.setCancelled(true);
+			sb.getState().update();
+			return;
+		}
+	}
+	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)
+	{
+		if(args.length >= 1)
+		{
+			if(args[0].equalsIgnoreCase("create"))
+			{
+				if(noPerm(sender, "scs.create"))return true;
+				if(noConsole(sender))return true;
+				Player player = (Player)sender;
+				Block b = player.getTargetBlock(null, 5);
+				if(b == null)return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+				if(b.getType() != Material.SIGN_POST && b.getType() != Material.WALL_SIGN)
+					return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+				Sign s = (Sign)b.getState();
+				boolean e = false;
+				for(String x:s.getLines())
+				{
+					if(!x.isEmpty())e = true;
+				}
+				if(e)return msg(sender, ChatColor.RED + "This sign must be empty!");
+				NBTTagCompound sh = getShopData(b);
+				if(sh != null)return msg(sender, ChatColor.RED + "There is already a shop here!");
+				s.setLine(1, ChatColor.AQUA + "Shop");
+				Inventory i = this.getServer().createInventory(null, 27, "Shop");
+				create.put(player.openInventory(i), b);
+				player.sendMessage(ChatColor.YELLOW + "Put all the items you want to " +
+						"sell in the shop's inventory.");
+			}
+			else if(args[0].equalsIgnoreCase("break"))
+			{
+				if(noPerm(sender, "scs.create"))return true;
+				if(noConsole(sender))return true;
+				Player player = (Player)sender;
+				Block b = player.getTargetBlock(null, 5);
+				if(b == null)return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+				NBTTagCompound s = getShopData(b);
+				if(s == null)
+					return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+				Sign sign = (Sign)b.getState();
+				sign.setLine(0, "");
+				sign.setLine(1, "");
+				sign.setLine(2, "");
+				sign.setLine(3, "");
+				sign.update();
+				removeShop(s);
+				player.sendMessage(ChatColor.YELLOW + "SignChestShop broken.");
+			}
+			else if(args[0].equalsIgnoreCase("price"))
+			{
+				if(noPerm(sender, "scs.create"))return true;
+				if(noConsole(sender))return true;
+				if(args.length != 2)return msg(sender, ChatColor.RED + "Usage: /scs price <price>");
+				Player player = (Player)sender;
+				Block b = player.getTargetBlock(null, 5);
+				if(b == null)return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+				NBTTagCompound s = getShopData(b);
+				if(s == null)
+					return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+				double price;
+				if(args[1].equalsIgnoreCase("free"))price = 0;
+				else if(args[1].equalsIgnoreCase("display"))price = -1;
+				else
+				{
+					try
+					{
+						price = Double.parseDouble(args[1]);
+						if(price <= 0)return msg(sender, ChatColor.RED + 
+								"Price must be a positive number!");
+					}catch(NumberFormatException nfe)
+					{
+						return msg(sender, ChatColor.RED + 
+								"\"" + args[1] + "\" is not a valid number.");
+					}
+				}
+				Inventory i = getShop(s, true, "Price");
+				this.price.put(player.openInventory(i), 
+						new DKey<Double, NBTTagCompound>(price, s));
+			}
+			else if(args[0].equalsIgnoreCase("edit"))
+			{
+				if(noPerm(sender, "scs.create"))return true;
+				if(noConsole(sender))return true;
+				Player player = (Player)sender;
+				Block b = player.getTargetBlock(null, 5);
+				if(b == null)return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+				NBTTagCompound s = getShopData(b);
+				if(s == null)
+					return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+				Inventory i = getShop(s, false, "Edit");
+				edit.put(player.openInventory(i), s);
+			}
+			else if(args[0].equalsIgnoreCase("reload"))
+			{
+				if(noPerm(sender, "scs.reload"))return true;
+				try {
+					config.load();
+					sender.sendMessage(ChatColor.GREEN + "Config reloaded successfully.");
+				} catch (IOException ioe) {
+					sender.sendMessage(ChatColor.RED + "An error occured while reloading the config" + 
+							(sender != getServer().getConsoleSender() ? ", check the console for details" : "") + "!");
+					log.log(Level.SEVERE, "Could not load config, reverting to defaults", ioe);
+				}
+			}
+			else if(args[0].equalsIgnoreCase("refresh"))
+			{
+				if(noPerm(sender, "scs.refresh"))return true;
+				boolean s = writeConfig();
+				if(s)sender.sendMessage(ChatColor.GREEN + "Config file updated.");
+				else sender.sendMessage(ChatColor.RED + "An error occured while updating the config" + 
+						(sender != getServer().getConsoleSender() ? ", check the console for details" : "") + "!");
+			}
+			else if(args[0].equalsIgnoreCase("help"))helpCmd(sender, args);
+			else sender.sendMessage(ChatColor.GOLD + "Command unrecognized.  " +
+					"Type " + ChatColor.AQUA + "/scs help" + ChatColor.GOLD + " for help");
+		}
+		else
+		{
+			sender.sendMessage(ChatColor.GOLD + "SignChestShop version " + 
+					getDescription().getVersion());
+			sender.sendMessage("Type " + ChatColor.AQUA + "/scs help" + ChatColor.GOLD + " for help");
+		}
+		return true;
+	}
+	private boolean noConsole(CommandSender sender)
+	{
+		if(!(sender instanceof Player))return true;
+		return false;
+	}
+	private boolean msg(CommandSender sender, String msg)
+	{
+		sender.sendMessage(msg);
+		return true;
+	}
+	private boolean helpCmd(CommandSender sender, String[] args)
+	{
+		sender.sendMessage(ChatColor.GOLD + "SignChestShop Help");
+		msg(sender, def("/scs help", "Displays this menu"));
+		if(sender.hasPermission("scs.create"))
+		{
+			msg(sender, def("/scs create", "Creates a SignChestShop"));
+			msg(sender, def("/scs break", "Deletes a SignChestShop"));
+			msg(sender, def("/scs price <price>", "Prices a SignChestShop"));
+			msg(sender, def("/scs edit", "Edits a SignChestShop"));
+		}
+		if(sender.hasPermission("scs.reload"))msg(sender, def("/scs reload", "Reloads the config"));
+		if(sender.hasPermission("scs.refresh"))msg(sender, def("/scs refresh", "Updates the config"));
+		return true;
+	}
+	private String def(String a, String b)
+	{
+		return ChatColor.AQUA + a + ChatColor.DARK_RED + " - " + ChatColor.GOLD + b;
+	}
+	private boolean noPerm(CommandSender sender, String perm)
+	{
+		if(sender.hasPermission(perm))return false;
+		sender.sendMessage(color(config.getString("message.cmd.noperm", Messages.DEFAULT_CMD_NOPERM)));
+		return true;
+	}
+	protected net.minecraft.server.ItemStack nmsStack(ItemStack i)
+	{
+		return ((CraftItemStack)i).getHandle();
+	}
+	protected NBTTagCompound getShopData(Block b)
+	{
+		Location bloc = b.getLocation();
+		NBTTagList shops = data.getList("Shops");
+		for(int i = 0; i < shops.size(); i ++)
+		{
+			NBTTagCompound d = (NBTTagCompound)shops.get(i);
+			double x = d.getDouble("x");
+			double y = d.getDouble("y");
+			double z = d.getDouble("z");
+			String world = d.getString("world");
+			if(bloc.getX() != x)continue;
+			if(bloc.getY() != y)continue;
+			if(bloc.getZ() != z)continue;
+			if(!bloc.getWorld().getName().equals(world))continue;
+			if(b.getType() != Material.SIGN_POST && b.getType() != Material.WALL_SIGN)
+			{
+				removeShop(d);
+				return null;
+			}
+			return d;
+		}
+		return null;
+	}
+	protected void removeShop(NBTTagCompound s)
+	{
+		NBTTagList shops = data.getList("Shops");
+		NBTTagList newshops = new NBTTagList();
+		for(int i = 0; i < shops.size(); i ++)
+		{
+			NBTTagCompound c = (NBTTagCompound)shops.get(i);
+			if(c != s)newshops.add(c);
+		}
+		data.set("Shops", newshops);
+	}
+	protected Inventory getShop(NBTTagCompound shop, boolean buy, String title)
+	{
+		NBTTagList items = shop.getList("items");
+		ArrayList<ItemStack>ilist = new ArrayList<ItemStack>();
+		for(int i = 0; i <items.size(); i ++)
+		{
+			NBTTagCompound c = (NBTTagCompound) items.get(i).clone();
+			if(c.c().size() == 0)
+			{
+				ilist.add(null);
+				continue;
+			}
+			net.minecraft.server.ItemStack item = net.minecraft.server.ItemStack.a(c);
+			CraftItemStack cis = new CraftItemStack(item);
+			if(buy)
+			{
+				NBTTagCompound tag = item.getTag();
+				if(tag == null)item.setTag((tag = new NBTTagCompound()));
+				if(!tag.hasKey("display"))tag.setCompound("display", new NBTTagCompound());
+				NBTTagCompound display = tag.getCompound("display");
+				if(!display.hasKey("Lore"))display.set("Lore", new NBTTagList());
+				NBTTagList lore = display.getList("Lore");
+				String price = "Display only";
+				if(tag.hasKey("scs_price"))
+				{
+					double rprice = tag.getDouble("scs_price");
+					if(rprice < 0)price = "Display only";
+					if(rprice == 0)price = "Free";
+					else
+					{
+						String bmode = config.getString("buy.mode", "single");
+						if(bmode.equalsIgnoreCase("stack") || bmode.equalsIgnoreCase("amount"))price = rprice + " each";
+						else price = "" + rprice;
+					}
+				}
+				lore.add(new NBTTagString("", 
+						ChatColor.AQUA + "Price: " + ChatColor.GOLD + price));
+			}
+			ilist.add(cis);
+		}
+		Inventory i = this.getServer().createInventory(null, 27, title);
+		for(int a = 0; a < ilist.size(); a ++)
+		{
+			ItemStack item = ilist.get(a);
+			if(item == null)continue;
+			i.setItem(a, ilist.get(a));
+		}
+		return i;
+	}
+	protected Inventory getShop(NBTTagCompound shop, boolean buy)
+	{
+		return getShop(shop, buy, "Shop");
+	}
+	private class DKey<V, O>
+	{
+		private V a;
+		private O b;
+		public DKey(V a, O b)
+		{
+			this.a = a;
+			this.b = b;
+		}
+		public V getKey()
+		{
+			return a;
+		}
+		public O getValue()
+		{
+			return b;
+		}
+	}
+	public boolean writeConfig()
+	{
+		try
+		{
+			config.start();
+			config.insertComment("SignChestShop config generated by version " + 
+					getDescription().getVersion());
+			config.writeLine();
+			config.insertComment("---- Sign Options ----#");
+			config.writeLine();
+			config.insertComment("Enable this to allow signs to be empty on creation");
+			config.writeKey("shop.allowempty", Options.DEFAULT_SHOP_ALLOWEMPTY);
+			config.writeLine();
+			config.insertComment("---- Buying Options ----#");
+			config.writeLine();
+			config.insertComment("Buying modes:");
+			config.insertComment(" single  - Items are bought as single items");
+			config.insertComment(" stack  - Items are bought as stacks");
+			config.insertComment(" amount  - Items are bought with the same amount as the displayed item");
+			config.write("buy.mode", config.getString("buy.mode", Options.DEFAULT_BUY_MODE));
+			config.insertComment("Enable this to make shift clicks buy a stack");
+			config.write("buy.shiftclick", "" + config.getBoolean("buy.shiftclick", Options.DEFAULT_BUY_SHIFTCLICK));
+			config.insertComment("Enable this to require players to have \"scs.buy\" in order to open a shop");
+			config.writeKey("buy.perms", "" + Options.DEFAULT_BUY_PERMS);
+			config.insertComment("Enable this to require players to have \"scs.buy.<id>\" in order to let them buy items with the id");
+			config.writeKey("buy.permsid", "" + Options.DEFAULT_BUY_PERMSID);
+			config.writeLine();
+			config.insertComment("---- Messages ----#");
+			config.writeLine();
+			config.insertComment("Global message variables:");
+			config.insertComment(" <player>  - The player doing an action");
+			config.writeLine();
+			config.insertComment("Message for creating a shop");
+			config.write("message.create.success", config.getString("message.create.success", Messages.DEFAULT_CREATE_SUCCESS));
+			config.insertComment("Message for cancelling shop creation");
+			config.write("message.create.cancel", config.getString("message.create.cancel", Messages.DEFAULT_CREATE_CANCEL));
+			config.writeLine();
+			config.insertComment("Message for cancelling the pricing of an item");
+			config.write("message.price.cancel", config.getString("message.price.cancel", Messages.DEFAULT_PRICE_CANCEL));
+			config.insertComment("Message for setting the price of an item");
+			config.write("message.price.set", config.getString("message.price.set", Messages.DEFAULT_PRICE_SET));
+			config.writeLine();
+			config.insertComment("Message for editing a shop");
+			config.write("message.edit", config.getString("message.edit", Messages.DEFAULT_EDIT));
+			config.writeLine();
+			config.insertComment("Message for an attempted breaking of a shop with the perm \"scs.create\"");
+			config.write("message.break.perm", config.getString("message.break.perm", Messages.DEFAULT_BREAK_PERM));
+			config.insertComment("Message for an attempted breaking of a shop without the perm \"scs.create\"");
+			config.write("message.break.noperm", config.getString("message.beak.noperm", Messages.DEFAULT_BREAK_NOPERM));
+			config.writeLine();
+			config.insertComment("Buy message variables:");
+			config.insertComment(" <amount>   - Amount of items bought");
+			config.insertComment(" <price>   - Price of items");
+			config.insertComment(" <rawprice>  - Price of items without the currency name");
+			config.insertComment(" <itemcorrectl>  - \"item\" with an \"s\" if plural");
+			config.insertComment(" <itemcorrectu>  - \"Item\" with an \"s\" if plural");
+			config.writeLine();
+			config.insertComment("Message for buying an item successfully");
+			config.write("message.buy.success", config.getString("message.buy.success", Messages.DEFAULT_BUY_SUCCESS));
+			config.insertComment("Message for having not enough money while buying an item");
+			config.write("message.buy.fail", config.getString("message.buy.fail", Messages.DEFAULT_BUY_FAIL));
+			config.insertComment("Message for buying an item for free");
+			config.write("message.buy.free", config.getString("message.buy.free", Messages.DEFAULT_BUY_FREE));
+			config.insertComment("Message for doing an invalid action while shopping, ignores buy " +
+					"variables");
+			config.write("message.buy.invalid", config.getString("message.buy.invalid", Messages.DEFAULT_BUY_INVALID));
+			config.writeLine();
+			config.insertComment("Message for not targeting a SignChestShop");
+			config.write("message.cmd.notarget", config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET));
+			config.insertComment("Message for not having the permissions");
+			config.write("message.cmd.noperm", config.getString("message.cmd.noperm", Messages.DEFAULT_CMD_NOPERM));
+			config.writeLine();
+			config.insertComment("---- Logging Options ----#");
+			config.writeLine();
+			config.insertComment("Enable this to log shop creation to the console");
+			config.write("log.create", "" + config.getBoolean("log.create", Options.DEFAULT_LOG_SHOP_CREATION));
+			config.close();
+		}
+		catch(IOException ioe)
+		{
+			log.log(Level.SEVERE, "Could not create config", ioe);
+			return false;
+		}
+		return true;
+	}
+	private String color(String s)
+	{
+		return ChatColor.translateAlternateColorCodes('&', s);
+	}
+	private String varBuy(String s, Player player, int amount, String price, double rawprice)
+	{
+		String a = var(s, player);
+		a = a.replaceAll("<amount>", "" + amount);
+		a = a.replaceAll("<price>", "" + price);
+		a = a.replaceAll("<rawprice>", "" + rawprice);
+		a = a.replaceAll("<itemcorrectl>", (amount == 1 ? "item" : "items"));
+		a = a.replaceAll("<itemcorrectu>", (amount == 1 ? "Item" : "Items"));
+		return a;
+	}
+	private String var(String s, Player player)
+	{
+		String a = color(s);
+		a = a.replaceAll("<player>", player.getName());
+		return a;
+	}
+	private void integCheck()
+	{
+		NBTTagList shops = data.getList("Shops");
+		for(int i = 0; i < shops.size(); i ++)
+		{
+			NBTTagCompound a = (NBTTagCompound)shops.get(i);
+			if(!a.hasKey("limited"))a.setBoolean("limited", false);
+			if(!a.hasKey("mode"))a.setInt("mode", MODE_BUY);
+		}
+	}
+	private void loadOld(File dat)throws Exception
+	{
+		DataInputStream dis = new DataInputStream(new FileInputStream(dat));
+		Method m = NBTTagCompound.class.getDeclaredMethod("load", DataInput.class);
+		m.setAccessible(true);
+		m.invoke(data, dis);
+	}
+}
