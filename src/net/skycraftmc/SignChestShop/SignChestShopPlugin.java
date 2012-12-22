@@ -59,6 +59,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 	private Economy econ;
 	private Logger log;
 	private SignChestShopAPI api;
+	private TagFactory tagfactory;
 	public static final int MODE_BUY = 0;
 	public static final int MODE_SELL = 1;
 	protected static SignChestShopPlugin inst;
@@ -84,6 +85,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		} catch (IOException ioe) {
 			log.log(Level.SEVERE, "Could not load config, reverting to defaults", ioe);
 		}
+		tagfactory = new TagFactory(this);
 		File dat = new File(getDataFolder(), "data.dat");
 		data = new NBTTagCompound();
 		if(dat.exists())

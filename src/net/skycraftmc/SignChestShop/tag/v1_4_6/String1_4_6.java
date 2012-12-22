@@ -1,12 +1,12 @@
-package net.skycraftmc.SignChestShop.tag.none;
+package net.skycraftmc.SignChestShop.tag.v1_4_6;
 
 import net.skycraftmc.SignChestShop.tag.TagString;
 import net.skycraftmc.SignChestShop.util.SafeField;
 
-public class StringNone extends TagString 
+public class String1_4_6 extends TagString
 {
 	protected SafeField fset;
-	public StringNone(Object o) 
+	public String1_4_6(Object o) 
 	{
 		super(o, "b", "a", "load", "write");
 	}

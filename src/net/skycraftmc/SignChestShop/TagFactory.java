@@ -4,8 +4,11 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 import net.skycraftmc.SignChestShop.tag.TagCompound;
+import net.skycraftmc.SignChestShop.tag.TagString;
 import net.skycraftmc.SignChestShop.tag.none.CompoundNone;
+import net.skycraftmc.SignChestShop.tag.none.StringNone;
 import net.skycraftmc.SignChestShop.tag.v1_4_6.Compound1_4_6;
+import net.skycraftmc.SignChestShop.tag.v1_4_6.String1_4_6;
 import net.skycraftmc.SignChestShop.util.SafeField;
 import net.skycraftmc.SignChestShop.util.SafeReflectFailException;
 
@@ -67,27 +70,35 @@ public class TagFactory
 	public TagCompound createCompound(String name)
 	{
 		if(ver.equals("v1_4_6"))return new Compound1_4_6(createNMSTag("Compound", name));
+		else if(ver.equals("v1_4_5"))return new CompoundNone(createNMSTag("Compound", name));
 		else return new CompoundNone(createNMSTag("Compound", name));
+	}
+	public TagString createString(String name)
+	{
+		if(ver.equals("v1_4_6"))return new String1_4_6(createNMSTag("String", name));
+		else if(ver.equals("v1_4_5"))return new StringNone(createNMSTag("String", name));
+		else return new StringNone(createNMSTag("String", name));
 	}
 	public TagCompound getCompound(ItemStack i)
 	{
 		try
 		{
 			if(ver.equals("v1_4_6"))
-			{
-				SafeField f = SafeField.get(i.getClass(), "handle");
-				return new Compound1_4_6(f.get(i));
-			}
-			else
-			{
-				SafeField f = SafeField.get(i.getClass(), "handle");
-				return new CompoundNone(f.get(i));
-			}
+				return new Compound1_4_6(SafeField.get(i.getClass(), "handle").get(i));
+			else if(ver.equals("v1_4_5"))
+				return new CompoundNone(SafeField.get(i.getClass(), "handle").get(i));
+			else return new CompoundNone(SafeField.get(i.getClass(), "handle").get(i));
 		}
 		catch(SafeReflectFailException e)
 		{
 			e.printStackTrace();
 			return null;
 		}
+	}
+	public boolean isCompatible()
+	{
+		if(ver.equals("v1_4_6"))return true;
+		else if(ver.equals("v1_4_5"))return true;
+		else return false;
 	}
 }
