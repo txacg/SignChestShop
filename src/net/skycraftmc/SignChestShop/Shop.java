@@ -1,9 +1,9 @@
 package net.skycraftmc.SignChestShop;
 
-import net.minecraft.server.NBTTagCompound;
-import net.minecraft.server.NBTTagList;
+import net.minecraft.server.v1_4_6.NBTTagCompound;
+import net.minecraft.server.v1_4_6.NBTTagList;
 
-import org.bukkit.craftbukkit.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_4_6.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
@@ -71,7 +71,7 @@ public class Shop
 		NBTTagList ilist = data.getList("items");
 		ItemStack[] i = new ItemStack[ilist.size()];
 		for(int a = 0; a < ilist.size(); a ++)i[a] = 
-				new CraftItemStack(net.minecraft.server.ItemStack.a((NBTTagCompound)ilist.get(a)));
+				CraftItemStack.asCraftMirror((net.minecraft.server.v1_4_6.ItemStack.a((NBTTagCompound)ilist.get(a))));
 		return i;
 	}
 	public boolean equals(Object o)
