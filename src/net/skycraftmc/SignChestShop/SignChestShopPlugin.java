@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,6 +36,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -493,6 +495,35 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 										}
 									});
 						}
+					}
+				}
+			}
+		}
+	}
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+	public void explode(EntityExplodeEvent event)
+	{
+		Iterator<Block>it = event.blockList().iterator();
+		while(it.hasNext())
+		{
+			Block b = it.next();
+			NBTTagCompound c = getShopData(b);
+			if(c != null)it.remove();
+			else
+			{
+				Block[] d = {b, b.getRelative(BlockFace.EAST), b.getRelative(BlockFace.WEST),
+						b.getRelative(BlockFace.NORTH), b.getRelative(BlockFace.SOUTH),
+						b.getRelative(BlockFace.UP)};
+				for(Block s:d)
+				{
+					MaterialData md = s.getState().getData();
+					if(!(md instanceof org.bukkit.material.Sign))continue;
+					org.bukkit.material.Sign e = (org.bukkit.material.Sign)md;
+					if(e.getAttachedFace() == s.getFace(b))c = getShopData(s);
+					if(c != null)
+					{
+						it.remove();
+						break;
 					}
 				}
 			}
