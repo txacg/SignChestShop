@@ -377,7 +377,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				else
 				{
 					NBTTagList newlore = new NBTTagList();
-					for(int x = 0; x < lore.size() - 1; x ++)
+					for(int x = 1; x < lore.size(); x ++)
 						newlore.add(lore.get(x));
 					display.set("Lore", newlore);
 				}
