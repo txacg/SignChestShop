@@ -421,6 +421,16 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					event.setCancelled(true);
 					return;
 				}
+				net.minecraft.server.v1_4_R1.ItemStack nms2 = nms.cloneItemStack();
+				NBTTagCompound ltag = nms2.getTag();
+				ltag.remove("scs_price");
+				NBTTagCompound ldisplay = ltag.getCompound("display");
+				NBTTagList llist = ldisplay.getList("Lore");
+				if(llist.size() == 1)ldisplay.remove("Lore");
+				if(ldisplay.c().size() == 0)nms2.tag.remove("display");
+				if(nms2.tag.c().size() == 0)nms2.setTag(null);
+				CraftItemStack tn = CraftItemStack.asCraftMirror(nms2);
+				if(!i.isSimilar(tn))return;
 				double price = nms.getTag().getDouble("scs_price");
 				if(config.getBoolean("sell.permsid", Options.DEFAULT_SELL_PERMSID))
 				{
@@ -432,13 +442,20 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					}
 				}
 				int amount = i.getAmount();
+				if(event.isRightClick())amount = 1;
 				price *= amount;
 				String curname = (price == 1 ? econ.currencyNameSingular() : econ.currencyNamePlural());
 				if(!curname.isEmpty())curname = " " + curname;
 				econ.depositPlayer(player.getName(), price);
 				player.sendMessage(varBuy(config.getString("message.sell.success", 
 						Messages.DEFAULT_SELL_SUCCESS), player, amount, price + curname, price));
-				player.setItemOnCursor(null);
+				if(i.getAmount() - amount <= 0)player.setItemOnCursor(null);
+				else
+				{
+					ItemStack n = i.clone();
+					n.setAmount(n.getAmount() - amount);
+					player.setItemOnCursor(n);
+				}
 			}
 			else if((top && player.getItemOnCursor().getType() != Material.AIR && 
 					event.getSlot() != -999) || (!top && event.getCurrentItem().getType() != Material.AIR
