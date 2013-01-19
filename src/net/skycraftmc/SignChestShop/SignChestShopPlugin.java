@@ -325,17 +325,13 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					else
 					{
 						NBTTagList newlore = new NBTTagList();
-						for(int x = 0; x < lore.size() - 1; x ++)
+						for(int x = 1; x < lore.size(); x ++)
 							newlore.add(lore.get(x));
 						display.set("Lore", newlore);
 					}
 					if(display.c().size() == 0)nms.tag.remove("display");
 					if(nnms.tag.c().size() == 0)nms.setTag(null);
-					if(nnms.tag != null && pnms.tag != null)
-					{
-						if(nnms.tag == null ^ pnms.tag == null)return;
-						else if(!nnms.equals(pnms))return;
-					}
+					if(!CraftItemStack.asCraftMirror(nnms).isSimilar(CraftItemStack.asCraftMirror(pnms)))return;
 				}
 				if(i.getType() == Material.AIR)return;
 				int a = i.getType().getMaxStackSize();
@@ -383,13 +379,16 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				{
 					NBTTagList newlore = new NBTTagList();
 					for(int x = 1; x < lore.size(); x ++)
+					{
 						newlore.add(lore.get(x));
+					}
 					display.set("Lore", newlore);
 				}
 				if(display.c().size() == 0)nms.tag.remove("display");
 				if(nms.tag.c().size() == 0)nms.setTag(null);
-				i.setAmount(amount + iamount);
-				player.setItemOnCursor(i);
+				ItemStack n = CraftItemStack.asCraftMirror(nms);
+				n.setAmount(amount + iamount);
+				player.setItemOnCursor(n);
 			}
 			else if((top && player.getItemOnCursor().getType() != Material.AIR && 
 					event.getSlot() != -999) || (!top && event.getCurrentItem().getType() != Material.AIR
