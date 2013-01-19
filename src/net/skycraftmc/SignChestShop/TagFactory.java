@@ -99,6 +99,7 @@ public class TagFactory
 	{
 		if(ver.equals("v1_4_6"))return true;
 		else if(ver.equals("v1_4_5"))return true;
+		else if(ver.equals("v1_4_R1"))return true;
 		else return false;
 	}
 }

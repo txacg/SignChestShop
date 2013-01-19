@@ -16,10 +16,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.milkbowl.vault.economy.Economy;
-import net.minecraft.server.v1_4_6.NBTBase;
-import net.minecraft.server.v1_4_6.NBTTagCompound;
-import net.minecraft.server.v1_4_6.NBTTagList;
-import net.minecraft.server.v1_4_6.NBTTagString;
+import net.minecraft.server.v1_4_R1.NBTBase;
+import net.minecraft.server.v1_4_R1.NBTTagCompound;
+import net.minecraft.server.v1_4_R1.NBTTagList;
+import net.minecraft.server.v1_4_R1.NBTTagString;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -29,7 +29,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_4_6.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_4_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -78,6 +78,11 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			return;
 		}
 		econ = ecoprov.getProvider();
+		tagfactory = new TagFactory(this);
+		if(!tagfactory.isCompatible())
+		{
+			log.warning("SignChestShop may be incompatible with this version of CraftBukkit.  Use at your own risk.");
+		}
 		if(!getDataFolder().exists())getDataFolder().mkdir();
 		File cfile = new File(getDataFolder(), "config.txt");
 		config = new StringConfig(cfile);
@@ -301,7 +306,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					return;
 				}
 				ItemStack i = t.clone();
-				net.minecraft.server.v1_4_6.ItemStack nms = nmsStack(i);
+				net.minecraft.server.v1_4_R1.ItemStack nms = nmsStack(i);
 				if(!nms.getTag().hasKey("scs_price"))
 				{
 					event.setCancelled(true);
@@ -311,12 +316,12 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				if(player.getItemOnCursor().getType() != Material.AIR)
 				{
 					if(player.getItemOnCursor().getType() != t.getType())return;
-					net.minecraft.server.v1_4_6.ItemStack pnms = nmsStack(player.getItemOnCursor().clone());
-					net.minecraft.server.v1_4_6.ItemStack nnms = nms.cloneItemStack();
-					nnms.tag.o("scs_price");
+					net.minecraft.server.v1_4_R1.ItemStack pnms = nmsStack(player.getItemOnCursor().clone());
+					net.minecraft.server.v1_4_R1.ItemStack nnms = nms.cloneItemStack();
+					nnms.tag.remove("scs_price");
 					NBTTagCompound display = nnms.tag.getCompound("display");
 					NBTTagList lore = display.getList("Lore");
-					if(lore.size() == 1)display.o("Lore");
+					if(lore.size() == 1)display.remove("Lore");
 					else
 					{
 						NBTTagList newlore = new NBTTagList();
@@ -324,7 +329,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 							newlore.add(lore.get(x));
 						display.set("Lore", newlore);
 					}
-					if(display.c().size() == 0)nms.tag.o("display");
+					if(display.c().size() == 0)nms.tag.remove("display");
 					if(nnms.tag.c().size() == 0)nms.setTag(null);
 					if(nnms.tag != null && pnms.tag != null)
 					{
@@ -370,10 +375,10 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				}
 				else player.sendMessage(varBuy(config.getString("message.buy.free", 
 						Messages.DEFAULT_BUY_FREE), player, amount, price + curname, price));
-				nms.tag.o("scs_price");
+				nms.tag.remove("scs_price");
 				NBTTagCompound display = nms.getTag().getCompound("display");
 				NBTTagList lore = display.getList("Lore");
-				if(lore.size() == 1)display.o("Lore");
+				if(lore.size() == 1)display.remove("Lore");
 				else
 				{
 					NBTTagList newlore = new NBTTagList();
@@ -381,7 +386,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 						newlore.add(lore.get(x));
 					display.set("Lore", newlore);
 				}
-				if(display.c().size() == 0)nms.tag.o("display");
+				if(display.c().size() == 0)nms.tag.remove("display");
 				if(nms.tag.c().size() == 0)nms.setTag(null);
 				i.setAmount(amount + iamount);
 				player.setItemOnCursor(i);
@@ -410,7 +415,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					return;
 				}
 				if(t.getType() != i.getType())return;
-				net.minecraft.server.v1_4_6.ItemStack nms = nmsStack(t);
+				net.minecraft.server.v1_4_R1.ItemStack nms = nmsStack(t);
 				if(!nms.getTag().hasKey("scs_price"))
 				{
 					event.setCancelled(true);
@@ -463,7 +468,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			if(!item.hasKey("tag"))item.setCompound("tag", new NBTTagCompound());
 			NBTTagCompound tag = item.getCompound("tag");
 			if(p >= 0)tag.setDouble("scs_price", p);
-			else tag.o("scs_price");
+			else tag.remove("scs_price");
 			event.getView().close();
 			player.sendMessage(var(config.getString("message.price.set", Messages.DEFAULT_PRICE_SET), player));
 		}
@@ -476,13 +481,13 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			{
 				if(!top || sclick)
 				{
-					net.minecraft.server.v1_4_6.ItemStack nms = nmsStack(i);
+					net.minecraft.server.v1_4_R1.ItemStack nms = nmsStack(i);
 					NBTTagCompound tag = nms.getTag();
 					if(tag != null)
 					{
 						if(tag.hasKey("scs_price"))
 						{
-							tag.o("scs_price");
+							tag.remove("scs_price");
 							if(tag.c().size() == 0)nms.setTag(null);
 							event.setCursor(CraftItemStack.asCraftMirror(nms));
 							final Player runnablePlayer = player;
@@ -677,6 +682,22 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				else sender.sendMessage(ChatColor.RED + "An error occured while updating the config" + 
 						(sender != getServer().getConsoleSender() ? ", check the console for details" : "") + "!");
 			}
+			else if(args[0].equalsIgnoreCase("setmode"))
+			{
+				if(noPerm(sender, "scs.create"))return true;
+				if(noConsole(sender))return true;
+				if(args.length != 2)return msg(sender, ChatColor.RED + "Usage: /scs setmode <mode>");
+				Player player = (Player)sender;
+				Block b = player.getTargetBlock(null, 5);
+				if(b == null)return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+				NBTTagCompound s = getShopData(b);
+				if(s == null)
+					return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+				if(args[1].equalsIgnoreCase("buy"))s.setInt("mode", MODE_BUY);
+				else if(args[1].equalsIgnoreCase("sell"))s.setInt("mode", MODE_SELL);
+				else return msg(player, ChatColor.RED + "Acceptable modes: buy, sell");
+				player.sendMessage(ChatColor.GREEN + "Mode set to " + args[1]);
+			}
 			else if(args[0].equalsIgnoreCase("help"))helpCmd(sender, args);
 			else sender.sendMessage(ChatColor.GOLD + "Command unrecognized.  " +
 					"Type " + ChatColor.AQUA + "/scs help" + ChatColor.GOLD + " for help");
@@ -709,6 +730,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			msg(sender, def("/scs break", "Deletes a SignChestShop"));
 			msg(sender, def("/scs price <price>", "Prices a SignChestShop"));
 			msg(sender, def("/scs edit", "Edits a SignChestShop"));
+			msg(sender, def("/scs setmode <mode>", "Sets the mode of a SignChestShop"));
 		}
 		if(sender.hasPermission("scs.reload"))msg(sender, def("/scs reload", "Reloads the config"));
 		if(sender.hasPermission("scs.refresh"))msg(sender, def("/scs refresh", "Updates the config"));
@@ -724,7 +746,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		sender.sendMessage(color(config.getString("message.cmd.noperm", Messages.DEFAULT_CMD_NOPERM)));
 		return true;
 	}
-	protected net.minecraft.server.v1_4_6.ItemStack nmsStack(ItemStack i)
+	protected net.minecraft.server.v1_4_R1.ItemStack nmsStack(ItemStack i)
 	{
 		return CraftItemStack.asNMSCopy(i);
 	}
@@ -775,7 +797,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				ilist.add(null);
 				continue;
 			}
-			net.minecraft.server.v1_4_6.ItemStack item = net.minecraft.server.v1_4_6.ItemStack.a(c);
+			net.minecraft.server.v1_4_R1.ItemStack item = net.minecraft.server.v1_4_R1.ItemStack.createStack(c);
 			CraftItemStack cis = CraftItemStack.asCraftMirror(item);
 			if(buy)
 			{
