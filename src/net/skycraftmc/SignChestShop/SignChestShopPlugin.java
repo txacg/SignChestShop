@@ -61,10 +61,10 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 	private Economy econ;
 	private Logger log;
 	private SignChestShopAPI api;
-	private TagFactory tagfactory;
 	public static final int MODE_BUY = 0;
 	public static final int MODE_SELL = 1;
 	protected static SignChestShopPlugin inst;
+	private boolean initsuccess = false;
 	public void onEnable()
 	{
 		inst = this;
@@ -78,11 +78,14 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			return;
 		}
 		econ = ecoprov.getProvider();
-		tagfactory = new TagFactory(this);
-		if(!tagfactory.isCompatible())
+		String[] vercheck = getServer().getClass().getPackage().getName().split("[.]", 5);
+		if(vercheck.length == 5)
 		{
-			log.warning("SignChestShop may be incompatible with this version of CraftBukkit.  Use at your own risk.");
+			if(!vercheck[3].equals("1.4_R1"))getLogger().warning(
+					"This version of SignChestShop may not be compatible with this version of CraftBukkit.");
 		}
+		else getLogger().warning(
+				"This version of SignChestShop may not be compatible with this version of CraftBukkit.");
 		if(!getDataFolder().exists())getDataFolder().mkdir();
 		File cfile = new File(getDataFolder(), "config.txt");
 		config = new StringConfig(cfile);
@@ -92,7 +95,6 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		} catch (IOException ioe) {
 			log.log(Level.SEVERE, "Could not load config, reverting to defaults", ioe);
 		}
-		tagfactory = new TagFactory(this);
 		File dat = new File(getDataFolder(), "data.dat");
 		data = new NBTTagCompound();
 		if(dat.exists())
@@ -134,6 +136,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		integCheck();
 		getServer().getPluginManager().registerEvents(this, this);
 		api = new SignChestShopAPI(this);
+		initsuccess = true;
 	}
 	/**
 	 * Returns the plugin's API
@@ -147,24 +150,27 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 	{
 		File f = getDataFolder();
 		if(!f.exists())f.mkdir();
-		File dat = new File(f, "data.dat");
-		try
+		if(initsuccess)
 		{
-			DataOutputStream dos = new DataOutputStream(new FileOutputStream(dat));
+			File dat = new File(f, "data.dat");
 			try
 			{
-				NBTBase.a(data, dos);
+				DataOutputStream dos = new DataOutputStream(new FileOutputStream(dat));
+				try
+				{
+					NBTBase.a(data, dos);
+				}
+				catch(Exception e)
+				{
+					e.printStackTrace();
+				}
+				dos.flush();
+				dos.close();
 			}
-			catch(Exception e)
+			catch(IOException ioe)
 			{
-				e.printStackTrace();
+				ioe.printStackTrace();
 			}
-			dos.flush();
-			dos.close();
-		}
-		catch(IOException ioe)
-		{
-			ioe.printStackTrace();
 		}
 		for(InventoryView i:buy)i.close();
 		buy.clear();
@@ -176,6 +182,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		price.clear();
 		for(Map.Entry<InventoryView, NBTTagCompound> k:edit.entrySet())k.getKey().close();
 		edit.clear();
+		initsuccess = false;
 	}
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void interact(PlayerInteractEvent event)
