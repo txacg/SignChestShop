@@ -85,7 +85,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		String[] vercheck = getServer().getClass().getPackage().getName().split("[.]", 5);
 		if(vercheck.length == 5)
 		{
-			if(!vercheck[3].equals("1.4_R1"))getLogger().warning(
+			if(!vercheck[3].equals("v1_4_R1"))getLogger().warning(
 					"This version of SignChestShop may not be compatible with this version of CraftBukkit.");
 		}
 		else getLogger().warning(
@@ -353,7 +353,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					else
 					{
 						NBTTagList newlore = new NBTTagList();
-						for(int x = 1; x < lore.size(); x ++)
+						for(int x = 0; x < lore.size() - 1; x ++)
 							newlore.add(lore.get(x));
 						display.set("Lore", newlore);
 					}
@@ -406,7 +406,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				else
 				{
 					NBTTagList newlore = new NBTTagList();
-					for(int x = 1; x < lore.size(); x ++)
+					for(int x = 0; x < lore.size() - 1; x ++)
 					{
 						newlore.add(lore.get(x));
 					}
