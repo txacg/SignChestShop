@@ -454,6 +454,15 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				NBTTagCompound ldisplay = ltag.getCompound("display");
 				NBTTagList llist = ldisplay.getList("Lore");
 				if(llist.size() == 1)ldisplay.remove("Lore");
+				else
+				{
+					NBTTagList newlore = new NBTTagList();
+					for(int x = 0; x < llist.size() - 1; x ++)
+					{
+						newlore.add(llist.get(x));
+					}
+					ldisplay.set("Lore", newlore);
+				}
 				if(ldisplay.c().size() == 0)nms2.tag.remove("display");
 				if(nms2.tag.c().size() == 0)nms2.setTag(null);
 				CraftItemStack tn = CraftItemStack.asCraftMirror(nms2);
