@@ -939,10 +939,17 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			config.write("buy.mode", config.getString("buy.mode", Options.DEFAULT_BUY_MODE));
 			config.insertComment("Enable this to make shift clicks buy a stack");
 			config.write("buy.shiftclick", "" + config.getBoolean("buy.shiftclick", Options.DEFAULT_BUY_SHIFTCLICK));
-			config.insertComment("Enable this to require players to have \"scs.buy\" in order to open a shop");
+			config.insertComment("Enable this to require players to have \"scs.buy\" in order to open a buy shop");
 			config.writeKey("buy.perms", "" + Options.DEFAULT_BUY_PERMS);
 			config.insertComment("Enable this to require players to have \"scs.buy.<id>\" in order to let them buy items with the id");
 			config.writeKey("buy.permsid", "" + Options.DEFAULT_BUY_PERMSID);
+			config.writeLine();
+			config.insertComment("---- Selling Options ----#");
+			config.writeLine();
+			config.insertComment("Enable this to require players to have \"scs.sell\" in order to open a sell shop");
+			config.writeKey("sell.perms", "" + Options.DEFAULT_SELL_PERMS);
+			config.insertComment("Enable this to require players to have \"scs.sell.<id>\" in order to let them sell items with the id");
+			config.writeKey("sell.permsid", "" + Options.DEFAULT_SELL_PERMSID);
 			config.writeLine();
 			config.insertComment("---- Messages ----#");
 			config.writeLine();
