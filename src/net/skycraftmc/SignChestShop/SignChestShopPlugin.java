@@ -263,6 +263,11 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			}
 			Block b = create.get(event.getView());
 			Sign s = (Sign)b.getState();
+			boolean e = true;
+			for(String x:s.getLines())
+			{
+				if(!x.isEmpty())e = false;
+			}
 			Location bloc = b.getLocation();
 			NBTTagCompound shop = new NBTTagCompound();
 			shop.setDouble("x", bloc.getX());
@@ -279,9 +284,12 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			shop.set("items", items);
 			data.getList("Shops").add(shop);
 			player.sendMessage(var(config.getString("message.create.success", Messages.DEFAULT_CREATE_SUCCESS), player));
-			s.setLine(0, ChatColor.AQUA + "Shop");
-			s.setLine(1, "Right click to");
-			s.setLine(2, "open!");
+			if(e)
+			{
+				s.setLine(0, ChatColor.AQUA + "Shop");
+				s.setLine(1, "Right click to");
+				s.setLine(2, "open!");
+			}
 			s.update();
 			if(config.getBoolean("log.create", Options.DEFAULT_LOG_SHOP_CREATION))
 					log.info(player.getName() + " created a SignChestShop at " + bloc.getX() + ", " + 
@@ -647,7 +655,6 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					return msg(sender, ChatColor.RED + "This sign must be empty!");
 				NBTTagCompound sh = getShopData(b);
 				if(sh != null)return msg(sender, ChatColor.RED + "There is already a shop here!");
-				s.setLine(1, ChatColor.AQUA + "Shop");
 				Inventory i = this.getServer().createInventory(null, 27, "Shop");
 				create.put(player.openInventory(i), b);
 				player.sendMessage(ChatColor.YELLOW + "Put all the items you want to " +
@@ -964,8 +971,8 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			config.insertComment(" <amount>   - Amount of items bought");
 			config.insertComment(" <price>   - Price of items");
 			config.insertComment(" <rawprice>  - Price of items without the currency name");
-			config.insertComment(" <itemcorrectl>  - \"item\" with an \"s\" if plural");
-			config.insertComment(" <itemcorrectu>  - \"Item\" with an \"s\" if plural");
+			config.insertComment(" <itemcorrectl>  - \"item\" with a \"s\" if plural");
+			config.insertComment(" <itemcorrectu>  - \"Item\" with a \"s\" if plural");
 			config.writeLine();
 			config.insertComment("Message for buying an item successfully");
 			config.write("message.buy.success", config.getString("message.buy.success", Messages.DEFAULT_BUY_SUCCESS));
