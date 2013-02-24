@@ -82,8 +82,8 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			return;
 		}
 		econ = ecoprov.getProvider();
-		String[] vercheck = getServer().getClass().getPackage().getName().split("[.]", 5);
-		if(vercheck.length == 5)
+		String[] vercheck = getServer().getClass().getPackage().getName().split("[.]", 4);
+		if(vercheck.length == 4)
 		{
 			if(!vercheck[3].equals("v1_4_R1"))getLogger().warning(
 					"This version of SignChestShop may not be compatible with this version of CraftBukkit.");
@@ -493,7 +493,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				event.setCancelled(true);
 			}
 		}
-		else if(price.containsKey(event.getView()))
+		else if(price.containsKey(event.getView()) && event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR)
 		{
 			DKey<Double, NBTTagCompound> dkey = price.get(event.getView());
 			double p = dkey.getKey();
