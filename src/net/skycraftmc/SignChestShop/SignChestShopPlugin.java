@@ -634,7 +634,8 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				{
 					if(!x.isEmpty())e = true;
 				}
-				if(e)return msg(sender, ChatColor.RED + "This sign must be empty!");
+				if(e && config.getBoolean("shop.forceempty", Options.DEFAULT_SHOP_FORCEEMPTY))
+					return msg(sender, ChatColor.RED + "This sign must be empty!");
 				NBTTagCompound sh = getShopData(b);
 				if(sh != null)return msg(sender, ChatColor.RED + "There is already a shop here!");
 				s.setLine(1, ChatColor.AQUA + "Shop");
@@ -910,8 +911,8 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			config.writeLine();
 			config.insertComment("---- Sign Options ----#");
 			config.writeLine();
-			config.insertComment("Enable this to allow signs to be empty on creation");
-			config.writeKey("shop.allowempty", Options.DEFAULT_SHOP_ALLOWEMPTY);
+			config.insertComment("Enable this to force signs to be empty on creation");
+			config.writeKey("shop.forceempty", Options.DEFAULT_SHOP_FORCEEMPTY);
 			config.writeLine();
 			config.insertComment("---- Buying Options ----#");
 			config.writeLine();

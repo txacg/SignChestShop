@@ -9,5 +9,5 @@ public class Options
 	public static final boolean DEFAULT_BUY_PERMSID = false;
 	public static final boolean DEFAULT_SELL_PERMS = false;
 	public static final boolean DEFAULT_SELL_PERMSID = false;
-	public static final boolean DEFAULT_SHOP_ALLOWEMPTY = false;
+	public static final boolean DEFAULT_SHOP_FORCEEMPTY = true;
 }
