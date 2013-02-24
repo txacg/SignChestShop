@@ -201,7 +201,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		if(mode == MODE_BUY)
 		{
 			title = "Buy";
-			if(event.getPlayer().hasPermission("scs.buy") && config.getBoolean("buy.perms", Options.DEFAULT_BUY_PERMS))
+			if(!event.getPlayer().hasPermission("scs.buy") && config.getBoolean("buy.perms", Options.DEFAULT_BUY_PERMS))
 			{
 				event.getPlayer().sendMessage(color(config.getString("messages.buy.noperm", Messages.DEFAULT_BUY_NOPERM)));
 				return;
@@ -210,7 +210,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		else if(mode == MODE_SELL)
 		{
 			title = "Sell";
-			if(event.getPlayer().hasPermission("scs.sell") && config.getBoolean("sell.perms", Options.DEFAULT_SELL_PERMS))
+			if(!event.getPlayer().hasPermission("scs.sell") && config.getBoolean("sell.perms", Options.DEFAULT_SELL_PERMS))
 			{
 				event.getPlayer().sendMessage(color(config.getString("messages.sell.noperm", Messages.DEFAULT_SELL_NOPERM)));
 				return;
