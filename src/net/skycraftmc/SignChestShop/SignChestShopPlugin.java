@@ -15,11 +15,15 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.xml.stream.XMLStreamException;
+
 import net.milkbowl.vault.economy.Economy;
 import net.minecraft.server.v1_4_R1.NBTBase;
 import net.minecraft.server.v1_4_R1.NBTTagCompound;
 import net.minecraft.server.v1_4_R1.NBTTagList;
 import net.minecraft.server.v1_4_R1.NBTTagString;
+import net.skycraftmc.SignChestShop.util.UpdateInformation;
+import net.skycraftmc.SignChestShop.util.Updater;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -137,6 +141,23 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		getServer().getPluginManager().registerEvents(this, this);
 		api = new SignChestShopAPI(this);
 		initsuccess = true;
+		getServer().getScheduler().runTaskAsynchronously(this, new Runnable(){
+			public void run()
+			{
+				try {
+					UpdateInformation info = Updater.findUpdate();
+					if(info != null)
+					{
+						if(!getDescription().getVersion().equals(info.getVersion()))
+							getLogger().info("New update available: " + info.getVersion());
+					}
+				} catch (IOException e) {
+					getLogger().warning("Failed to find update: " + e);
+				} catch (XMLStreamException e) {
+					getLogger().warning("Failed to find update: " + e);
+				}
+			}
+		});
 	}
 	/**
 	 * Returns the plugin's API
