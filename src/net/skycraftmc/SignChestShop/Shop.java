@@ -19,8 +19,6 @@ import org.bukkit.inventory.ItemStack;
  */
 public class Shop 
 {
-	public static int BUY = 0;
-	public static int SELL = 1;
 	private NBTTagCompound data;
 	public Shop(NBTTagCompound data)
 	{
@@ -90,9 +88,17 @@ public class Shop
 	/**
 	 * @return The mode of the shop, such as BUY or SELL
 	 */
-	public int getMode()
+	public ShopMode getMode()
 	{
-		return data.getInt("mode");
+		return ShopMode.getByID(data.getInt("mode"));
+	}
+	/**
+	 * Sets the {@link ShopMode} of this shop.
+	 */
+	public void setMode(ShopMode mode)
+	{
+		if(mode == null)throw new IllegalArgumentException("The shop mode is null.");
+		data.setInt("mode", mode.ID);
 	}
 	/**
 	 * Opens the shop for the specified player.
@@ -101,12 +107,62 @@ public class Shop
 	 */
 	public InventoryView open(Player player)
 	{
-		int m = getMode();
+		int m = getMode().ID;
 		boolean b = m == 0;
 		Inventory i = SignChestShopPlugin.inst.getShop(data, b, (b ? "Buy" : "Sell"));
 		InventoryView iv = player.openInventory(i);
-		if(m == BUY)SignChestShopPlugin.inst.buy.add(iv);
-		else if(m == SELL)SignChestShopPlugin.inst.sell.add(iv);
+		if(m == ShopMode.BUY.ID)SignChestShopPlugin.inst.buy.add(iv);
+		else if(m == ShopMode.SELL.ID)SignChestShopPlugin.inst.sell.add(iv);
 		return iv;
+	}
+	/**
+	 * Represents the modes of a shop.
+	 */
+	public enum ShopMode
+	{
+		/**
+		 * Represents a shop that players buy from.
+		 */
+		BUY, 
+		/**
+		 * Represents a shop that players sell to.
+		 */
+		SELL;
+		/**
+		 * The ID of this shop mode.
+		 * @see #getID()
+		 */
+		public final int ID = ordinal();
+		/**
+		 * Finds and returns a {@link ShopMode} with the specified ID, or null if not found.
+		 * @param id - The ID of the shop mode
+		 * @return The ShopMode with the specified ID, or null if not found.
+		 */
+		public static ShopMode getByID(int id)
+		{
+			if(id < 0 || id >= values().length)return null;
+			return values()[id];
+		}
+		/**
+		 * Finds and returns a {@link ShopMode} with the specified name, or null if not found.
+		 * @param name - The ID of the shop mode
+		 * @return The ShopMode with the specified name, or null if not found.
+		 */
+		public static ShopMode getByName(String name)
+		{
+			for(ShopMode m:values())
+			{
+				if(m.name().equalsIgnoreCase(name))return m;
+			}
+			return null;
+		}
+		/**
+		 * @return The ID of this shop mode.  Equal to this {@link ShopMode}'s {@link #ID} variable.
+		 * @see #ID
+		 */
+		public int getID()
+		{
+			return ID;
+		}
 	}
 }

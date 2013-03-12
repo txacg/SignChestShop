@@ -22,6 +22,7 @@ import net.minecraft.server.v1_4_R1.NBTBase;
 import net.minecraft.server.v1_4_R1.NBTTagCompound;
 import net.minecraft.server.v1_4_R1.NBTTagList;
 import net.minecraft.server.v1_4_R1.NBTTagString;
+import net.skycraftmc.SignChestShop.Shop.ShopMode;
 import net.skycraftmc.SignChestShop.util.UpdateInformation;
 import net.skycraftmc.SignChestShop.util.Updater;
 
@@ -65,8 +66,6 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 	private Economy econ;
 	private Logger log;
 	private SignChestShopAPI api;
-	public static final int MODE_BUY = 0;
-	public static final int MODE_SELL = 1;
 	protected static SignChestShopPlugin inst;
 	private boolean initsuccess = false;
 	public void onEnable()
@@ -217,9 +216,9 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		event.setCancelled(true);
 		NBTTagCompound shop = getShopData(b);
 		if(shop == null)return;
-		int mode = shop.getInt("mode");
+		ShopMode mode = ShopMode.getByID(shop.getInt("mode"));
 		String title = "Shop";
-		if(mode == MODE_BUY)
+		if(mode == ShopMode.BUY)
 		{
 			title = "Buy";
 			if(!event.getPlayer().hasPermission("scs.buy") && config.getBoolean("buy.perms", Options.DEFAULT_BUY_PERMS))
@@ -228,7 +227,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				return;
 			}
 		}
-		else if(mode == MODE_SELL)
+		else if(mode == ShopMode.SELL)
 		{
 			title = "Sell";
 			if(!event.getPlayer().hasPermission("scs.sell") && config.getBoolean("sell.perms", Options.DEFAULT_SELL_PERMS))
@@ -239,8 +238,8 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		}
 		Inventory i = getShop(shop, true, title);
 		InventoryView iv = event.getPlayer().openInventory(i);
-		if(mode == MODE_BUY)buy.add(iv);
-		else if(mode == MODE_SELL)sell.add(iv);
+		if(mode == ShopMode.BUY)buy.add(iv);
+		else if(mode == ShopMode.SELL)sell.add(iv);
 	}
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void close(InventoryCloseEvent event)
@@ -754,8 +753,8 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				NBTTagCompound s = getShopData(b);
 				if(s == null)
 					return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
-				if(args[1].equalsIgnoreCase("buy"))s.setInt("mode", MODE_BUY);
-				else if(args[1].equalsIgnoreCase("sell"))s.setInt("mode", MODE_SELL);
+				if(args[1].equalsIgnoreCase("buy"))s.setInt("mode", ShopMode.BUY.ID);
+				else if(args[1].equalsIgnoreCase("sell"))s.setInt("mode", ShopMode.SELL.ID);
 				else return msg(player, ChatColor.RED + "Acceptable modes: buy, sell");
 				player.sendMessage(ChatColor.GREEN + "Mode set to " + args[1]);
 			}
@@ -1036,7 +1035,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		{
 			NBTTagCompound a = (NBTTagCompound)shops.get(i);
 			if(!a.hasKey("limited"))a.setBoolean("limited", false);
-			if(!a.hasKey("mode"))a.setInt("mode", MODE_BUY);
+			if(!a.hasKey("mode"))a.setInt("mode", ShopMode.BUY.ID);
 		}
 	}
 	private void loadOld(File dat)throws Exception
