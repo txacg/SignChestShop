@@ -44,13 +44,13 @@ public class SignChestShopAPI
 	}
 	/**
 	 * Returns the inventory of the shop that a player would see.
-	 * If you are trying to sell items to a player, please use
-	 * {@link #beginBuying(Player, Block, boolean)} instead.
+	 * If you are trying to have a player start a transaction, use {@link #getShop(Block)} and then
+	 * call the shop object's {@link Shop#open(Player)} method.
 	 * @param block - The shop's location
 	 * @param showPrice - If items should get "Price: <price>" appended to their lore
 	 * @param title - The title of the shop
 	 * @return The inventory the player would see
-	 * @see #beginBuying(Player, Block)
+	 * @see #getShopInventory(Block, boolean)
 	 */
 	public Inventory getShopInventory(Block block, boolean showPrice, String title)
 	{
@@ -60,25 +60,27 @@ public class SignChestShopAPI
 	}
 	/**
 	 * Returns the inventory of the shop that a player would see.
-	 * If you are trying to sell items to a player, please use
-	 * {@link #beginBuying(Player, Block, boolean)} instead.
+	 * If you are trying to have a player start a transaction, use {@link #getShop(Block)} and then
+	 * call the shop object's {@link Shop#open(Player)} method.
 	 * This method has the same effect as calling getShopInventory(block, showPrice, "Buy")
 	 * @param block - The shop's location
 	 * @param showPrice - If items should get "Price: <price>" appended to their lore
 	 * @return The inventory the player would see
-	 * @see #getShopInventory(Block, boolean)
-	 * @see #beginBuying(Player, Block)
+	 * @see #getShopInventory(Block, boolean, String)
 	 */
 	public Inventory getShopInventory(Block block, boolean showPrice)
 	{
 		return getShopInventory(block, showPrice, "Buy");
 	}
 	/**
+	 * @deprecated This method will open a sell shop as a buy shop.  Use {@link Shop#open(Player)} instead.
+	 * 
 	 * Opens a buy shop for the specified player.
 	 * @param player - The player who is purchasing the items
 	 * @param block - The shop
 	 * @return The {@link org.bukkit.inventory.InventoryView} associated with the transaction,
 	 *  or null if the shop is not found.
+	 *  @see Shop#open(Player)
 	 */
 	public InventoryView beginBuying(Player player, Block block)
 	{
@@ -86,17 +88,6 @@ public class SignChestShopAPI
 		if(i == null)return null;
 		InventoryView iv = player.openInventory(i);
 		plugin.buy.add(iv);
-		return iv;
-	}
-	/**
-	 * Opens a sell shop for the specified player
-	 */
-	public InventoryView beginSelling(Player player, Block block)
-	{
-		Inventory i = getShopInventory(block, true);
-		if(i == null)return null;
-		InventoryView iv = player.openInventory(i);
-		plugin.sell.add(iv);
 		return iv;
 	}
 	/**
