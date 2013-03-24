@@ -10,4 +10,5 @@ public class Options
 	public static final boolean DEFAULT_SELL_PERMS = false;
 	public static final boolean DEFAULT_SELL_PERMSID = false;
 	public static final boolean DEFAULT_SHOP_FORCEEMPTY = true;
+	public static final boolean DEFAULT_UPDATER_CHECK = true;
 }

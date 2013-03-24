@@ -140,23 +140,26 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		getServer().getPluginManager().registerEvents(this, this);
 		api = new SignChestShopAPI(this);
 		initsuccess = true;
-		getServer().getScheduler().runTaskAsynchronously(this, new Runnable(){
-			public void run()
-			{
-				try {
-					UpdateInformation info = Updater.findUpdate();
-					if(info != null)
-					{
-						if(!("v" + getDescription().getVersion()).equals(info.getVersion()))
-							getLogger().info("New update available: " + info.getVersion());
+		if(config.getBoolean("updater.check", true))
+		{
+			getServer().getScheduler().runTaskAsynchronously(this, new Runnable(){
+				public void run()
+				{
+					try {
+						UpdateInformation info = Updater.findUpdate();
+						if(info != null)
+						{
+							if(!("v" + getDescription().getVersion()).equals(info.getVersion()))
+								getLogger().info("New update available: " + info.getVersion());
+						}
+					} catch (IOException e) {
+						getLogger().warning("Failed to find update: " + e);
+					} catch (XMLStreamException e) {
+						getLogger().warning("Failed to find update: " + e);
 					}
-				} catch (IOException e) {
-					getLogger().warning("Failed to find update: " + e);
-				} catch (XMLStreamException e) {
-					getLogger().warning("Failed to find update: " + e);
 				}
-			}
-		});
+			});
+		}
 	}
 	/**
 	 * Returns the plugin's API
@@ -999,6 +1002,11 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			config.writeLine();
 			config.insertComment("Enable this to log shop creation to the console");
 			config.write("log.create", "" + config.getBoolean("log.create", Options.DEFAULT_LOG_SHOP_CREATION));
+			config.writeLine();
+			config.insertComment("---- Update Checker Options ----#");
+			config.writeLine();
+			config.insertComment("Enable this to automatically check for updates on enable");
+			config.write("updater.check", "" + config.getBoolean("updater.check", Options.DEFAULT_UPDATER_CHECK));
 			config.close();
 		}
 		catch(IOException ioe)
