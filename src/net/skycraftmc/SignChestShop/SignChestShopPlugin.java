@@ -216,7 +216,6 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		if(b == null)return;
 		if(b.getType() != Material.SIGN_POST && b.getType() != Material.WALL_SIGN)return;
 		//Sign s = (Sign)b.getState();
-		event.setCancelled(true);
 		NBTTagCompound shop = getShopData(b);
 		if(shop == null)return;
 		ShopMode mode = ShopMode.getByID(shop.getInt("mode"));
