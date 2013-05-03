@@ -18,10 +18,10 @@ import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
 
 import net.milkbowl.vault.economy.Economy;
-import net.minecraft.server.v1_5_R2.NBTBase;
-import net.minecraft.server.v1_5_R2.NBTTagCompound;
-import net.minecraft.server.v1_5_R2.NBTTagList;
-import net.minecraft.server.v1_5_R2.NBTTagString;
+import net.minecraft.server.v1_5_R3.NBTBase;
+import net.minecraft.server.v1_5_R3.NBTTagCompound;
+import net.minecraft.server.v1_5_R3.NBTTagList;
+import net.minecraft.server.v1_5_R3.NBTTagString;
 import net.skycraftmc.SignChestShop.Shop.ShopMode;
 import net.skycraftmc.SignChestShop.util.UpdateInformation;
 import net.skycraftmc.SignChestShop.util.Updater;
@@ -34,7 +34,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_5_R2.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_5_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -84,7 +84,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		String[] vercheck = getServer().getClass().getPackage().getName().split("[.]", 4);
 		if(vercheck.length == 4)
 		{
-			if(!vercheck[3].equals("v1_5_R2"))getLogger().warning(
+			if(!vercheck[3].equals("v1_5_R3"))getLogger().warning(
 					"This version of SignChestShop may not be compatible with this version of CraftBukkit.");
 		}
 		else getLogger().warning(
@@ -343,7 +343,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					return;
 				}
 				ItemStack i = t.clone();
-				net.minecraft.server.v1_5_R2.ItemStack nms = nmsStack(i);
+				net.minecraft.server.v1_5_R3.ItemStack nms = nmsStack(i);
 				if(!nms.getTag().hasKey("scs_price"))
 				{
 					event.setCancelled(true);
@@ -353,8 +353,8 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				if(player.getItemOnCursor().getType() != Material.AIR)
 				{
 					if(player.getItemOnCursor().getType() != t.getType())return;
-					net.minecraft.server.v1_5_R2.ItemStack pnms = nmsStack(player.getItemOnCursor().clone());
-					net.minecraft.server.v1_5_R2.ItemStack nnms = nms.cloneItemStack();
+					net.minecraft.server.v1_5_R3.ItemStack pnms = nmsStack(player.getItemOnCursor().clone());
+					net.minecraft.server.v1_5_R3.ItemStack nnms = nms.cloneItemStack();
 					nnms.tag.remove("scs_price");
 					NBTTagCompound display = nnms.tag.getCompound("display");
 					NBTTagList lore = display.getList("Lore");
@@ -451,13 +451,13 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					return;
 				}
 				if(t.getType() != i.getType())return;
-				net.minecraft.server.v1_5_R2.ItemStack nms = nmsStack(t);
+				net.minecraft.server.v1_5_R3.ItemStack nms = nmsStack(t);
 				if(!nms.getTag().hasKey("scs_price"))
 				{
 					event.setCancelled(true);
 					return;
 				}
-				net.minecraft.server.v1_5_R2.ItemStack nms2 = nms.cloneItemStack();
+				net.minecraft.server.v1_5_R3.ItemStack nms2 = nms.cloneItemStack();
 				NBTTagCompound ltag = nms2.getTag();
 				ltag.remove("scs_price");
 				NBTTagCompound ldisplay = ltag.getCompound("display");
@@ -543,7 +543,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			{
 				if(!top || sclick)
 				{
-					net.minecraft.server.v1_5_R2.ItemStack nms = nmsStack(i);
+					net.minecraft.server.v1_5_R3.ItemStack nms = nmsStack(i);
 					NBTTagCompound tag = nms.getTag();
 					if(tag != null)
 					{
@@ -808,7 +808,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		sender.sendMessage(color(config.getString("message.cmd.noperm", Messages.DEFAULT_CMD_NOPERM)));
 		return true;
 	}
-	protected net.minecraft.server.v1_5_R2.ItemStack nmsStack(ItemStack i)
+	protected net.minecraft.server.v1_5_R3.ItemStack nmsStack(ItemStack i)
 	{
 		return CraftItemStack.asNMSCopy(i);
 	}
@@ -859,7 +859,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				ilist.add(null);
 				continue;
 			}
-			net.minecraft.server.v1_5_R2.ItemStack item = net.minecraft.server.v1_5_R2.ItemStack.createStack(c);
+			net.minecraft.server.v1_5_R3.ItemStack item = net.minecraft.server.v1_5_R3.ItemStack.createStack(c);
 			CraftItemStack cis = CraftItemStack.asCraftMirror(item);
 			if(buy)
 			{
