@@ -1,9 +1,9 @@
 package net.skycraftmc.SignChestShop;
 
-import net.minecraft.server.v1_5_R3.NBTTagCompound;
-import net.minecraft.server.v1_5_R3.NBTTagList;
+import net.minecraft.server.v1_6_R1.NBTTagCompound;
+import net.minecraft.server.v1_6_R1.NBTTagList;
 
-import org.bukkit.craftbukkit.v1_5_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_6_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
@@ -19,8 +19,8 @@ import org.bukkit.inventory.ItemStack;
  */
 public class Shop 
 {
-	private NBTTagCompound data;
-	public Shop(NBTTagCompound data)
+	NBTTagCompound data;
+	Shop(NBTTagCompound data)
 	{
 		if(!data.hasKey("x") || !data.hasKey("y") || !data.hasKey("z") || !data.hasKey("world") ||
 				!data.hasKey("items"))
@@ -69,7 +69,7 @@ public class Shop
 		NBTTagList ilist = data.getList("items");
 		ItemStack[] i = new ItemStack[ilist.size()];
 		for(int a = 0; a < ilist.size(); a ++)i[a] = 
-				CraftItemStack.asCraftMirror((net.minecraft.server.v1_5_R3.ItemStack.createStack((NBTTagCompound)ilist.get(a))));
+				CraftItemStack.asCraftMirror((net.minecraft.server.v1_6_R1.ItemStack.createStack((NBTTagCompound)ilist.get(a))));
 		return i;
 	}
 	public boolean equals(Object o)
@@ -164,5 +164,15 @@ public class Shop
 		{
 			return ID;
 		}
+	}
+	/**
+	 * Not yet implemented.
+	 * @return The owner of this shop, or null if this is an admin shop.
+	 */
+	@Deprecated
+	public String getOwner()
+	{
+		if(!data.hasKey("owner"))return null;
+		return data.getString("owner");
 	}
 }
