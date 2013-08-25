@@ -56,6 +56,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 {
 	private StringConfig config;
 	protected NBTTagCompound data;
+	protected ArrayList<Shop> shops;
 	protected ArrayList<InventoryView>buy = new ArrayList<InventoryView>();
 	protected ArrayList<InventoryView>sell = new ArrayList<InventoryView>();
 	private HashMap<InventoryView, Block>create = new HashMap<InventoryView, Block>();
@@ -137,6 +138,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		}
 		else data.set("Shops", new NBTTagList());
 		integCheck();
+		buildShops();
 		getServer().getPluginManager().registerEvents(this, this);
 		api = new SignChestShopAPI(this);
 		initsuccess = true;
@@ -285,6 +287,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				items.add(copy);
 			}
 			shop.set("items", items);
+			shops.add(new Shop(shop));
 			data.getList("Shops").add(shop);
 			player.sendMessage(var(config.getString("message.create.success", Messages.DEFAULT_CREATE_SUCCESS), player));
 			if(e)
@@ -361,13 +364,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					NBTTagCompound display = nnms.tag.getCompound("display");
 					NBTTagList lore = display.getList("Lore");
 					if(lore.size() == 1)display.remove("Lore");
-					else
-					{
-						NBTTagList newlore = new NBTTagList();
-						for(int x = 0; x < lore.size() - 1; x ++)
-							newlore.add(lore.get(x));
-						display.set("Lore", newlore);
-					}
+					else display.set("Lore", removeLastLore(lore));
 					if(display.c().size() == 0)nms.tag.remove("display");
 					if(nnms.tag.c().size() == 0)nms.setTag(null);
 					if(!CraftItemStack.asCraftMirror(nnms).isSimilar(CraftItemStack.asCraftMirror(pnms)))return;
@@ -414,15 +411,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				NBTTagCompound display = nms.getTag().getCompound("display");
 				NBTTagList lore = display.getList("Lore");
 				if(lore.size() == 1)display.remove("Lore");
-				else
-				{
-					NBTTagList newlore = new NBTTagList();
-					for(int x = 0; x < lore.size() - 1; x ++)
-					{
-						newlore.add(lore.get(x));
-					}
-					display.set("Lore", newlore);
-				}
+				else display.set("Lore", removeLastLore(lore));
 				if(display.c().size() == 0)nms.tag.remove("display");
 				if(nms.tag.c().size() == 0)nms.setTag(null);
 				ItemStack n = CraftItemStack.asCraftMirror(nms);
@@ -465,15 +454,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				NBTTagCompound ldisplay = ltag.getCompound("display");
 				NBTTagList llist = ldisplay.getList("Lore");
 				if(llist.size() == 1)ldisplay.remove("Lore");
-				else
-				{
-					NBTTagList newlore = new NBTTagList();
-					for(int x = 0; x < llist.size() - 1; x ++)
-					{
-						newlore.add(llist.get(x));
-					}
-					ldisplay.set("Lore", newlore);
-				}
+				else ldisplay.set("Lore", removeLastLore(llist));
 				if(ldisplay.c().size() == 0)nms2.tag.remove("display");
 				if(nms2.tag.c().size() == 0)nms2.setTag(null);
 				CraftItemStack tn = CraftItemStack.asCraftMirror(nms2);
@@ -556,19 +537,30 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 							event.setCursor(CraftItemStack.asCraftMirror(nms));
 							final Player runnablePlayer = player;
 							getServer().getScheduler().scheduleSyncDelayedTask(this,
-									new Runnable()
+								new Runnable()
+								{
+									public void run() 
 									{
-										public void run() 
-										{
-											runnablePlayer.updateInventory();
-										}
-									});
+										runnablePlayer.updateInventory();
+									}
+								});
 						}
 					}
 				}
 			}
 		}
 	}
+	
+	private NBTTagList removeLastLore(NBTTagList lore)
+	{
+		NBTTagList newlore = new NBTTagList();
+		for(int x = 0; x < lore.size() - 1; x ++)
+		{
+			newlore.add(lore.get(x));
+		}
+		return newlore;
+	}
+	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void explode(EntityExplodeEvent event)
 	{
@@ -578,30 +570,33 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			Block b = it.next();
 			NBTTagCompound c = getShopData(b);
 			if(c != null)it.remove();
-			else
-			{
-				Block[] d = {b, b.getRelative(BlockFace.EAST), b.getRelative(BlockFace.WEST),
-						b.getRelative(BlockFace.NORTH), b.getRelative(BlockFace.SOUTH),
-						b.getRelative(BlockFace.UP)};
-				for(Block s:d)
-				{
-					MaterialData md = s.getState().getData();
-					if(!(md instanceof org.bukkit.material.Sign))continue;
-					org.bukkit.material.Sign e = (org.bukkit.material.Sign)md;
-					if(e.getAttachedFace() == s.getFace(b))c = getShopData(s);
-					if(c != null)
-					{
-						it.remove();
-						break;
-					}
-				}
-			}
+			else if(getAttachedShop(b).getValue() != null)it.remove();
 		}
 	}
+	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void breakBlock(BlockBreakEvent event)
 	{
 		Block b = event.getBlock();
+		DKey<Block, NBTTagCompound> k = getAttachedShop(b);
+		Block sb = k.getKey();
+		NBTTagCompound c = k.getValue();
+		if(c != null)
+		{
+			Player player = event.getPlayer();
+			boolean a = player.hasPermission("signchestshop.create");
+			if(a)player.sendMessage(color(config.getString("message.break.perm",
+					Messages.DEFAULT_BREAK_PERM)));
+			else player.sendMessage(var(config.getString(
+					"message.break.noperm", Messages.DEFAULT_BREAK_NOPERM), player));
+			event.setCancelled(true);
+			sb.getState().update();
+			return;
+		}
+	}
+	
+	private DKey<Block, NBTTagCompound> getAttachedShop(Block b)
+	{
 		Block sb = b;
 		NBTTagCompound c = getShopData(b);
 		if(c == null)
@@ -622,19 +617,9 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				if(c != null)break;
 			}
 		}
-		if(c != null)
-		{
-			Player player = event.getPlayer();
-			boolean a = player.hasPermission("signchestshop.create");
-			if(a)player.sendMessage(color(config.getString("message.break.perm",
-					Messages.DEFAULT_BREAK_PERM)));
-			else player.sendMessage(var(config.getString(
-					"message.break.noperm", Messages.DEFAULT_BREAK_NOPERM), player));
-			event.setCancelled(true);
-			sb.getState().update();
-			return;
-		}
+		return new DKey<Block, NBTTagCompound>(sb, c);
 	}
+	
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)
 	{
 		if(args.length >= 1)
@@ -829,9 +814,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			double y = d.getDouble("y");
 			double z = d.getDouble("z");
 			String world = d.getString("world");
-			if(bloc.getX() != x)continue;
-			if(bloc.getY() != y)continue;
-			if(bloc.getZ() != z)continue;
+			if(bloc.getX() != x || bloc.getY() != y || bloc.getZ() != z)continue;
 			if(!bloc.getWorld().getName().equals(world))continue;
 			if(b.getType() != Material.SIGN_POST && b.getType() != Material.WALL_SIGN)
 			{
@@ -851,6 +834,13 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		{
 			NBTTagCompound c = (NBTTagCompound)shops.get(i);
 			if(c != s)newshops.add(c);
+			else
+			{
+				for(Shop sh:this.shops)
+				{
+					if(sh.data == c)this.shops.remove(sh);
+				}
+			}
 		}
 		data.set("Shops", newshops);
 	}
@@ -1061,5 +1051,14 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		Method m = NBTTagCompound.class.getDeclaredMethod("load", DataInput.class);
 		m.setAccessible(true);
 		m.invoke(data, dis);
+	}
+	private void buildShops()
+	{
+		NBTTagList shops = data.getList("Shops");
+		for(int i = 0; i < shops.size(); i ++)
+		{
+			NBTTagCompound a = (NBTTagCompound)shops.get(i);
+			this.shops.add(new Shop(a));
+		}
 	}
 }

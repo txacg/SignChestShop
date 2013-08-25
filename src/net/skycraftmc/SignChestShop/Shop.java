@@ -1,5 +1,7 @@
 package net.skycraftmc.SignChestShop;
 
+import java.util.ArrayList;
+
 import net.minecraft.server.v1_6_R2.NBTTagCompound;
 import net.minecraft.server.v1_6_R2.NBTTagList;
 
@@ -20,6 +22,7 @@ import org.bukkit.inventory.ItemStack;
 public class Shop 
 {
 	NBTTagCompound data;
+	ArrayList<InventoryView> transactions = new ArrayList<InventoryView>();
 	Shop(NBTTagCompound data)
 	{
 		if(!data.hasKey("x") || !data.hasKey("y") || !data.hasKey("z") || !data.hasKey("world") ||
@@ -65,9 +68,7 @@ public class Shop
 	}
 	
 	/**
-	 * Returns the contents of this shop. 
-	 * Length of the array varies based on the contents.
-	 * @return The shop's contents
+	 * @return The contents of this shop.
 	 */
 	public ItemStack[] getContents()
 	{
@@ -121,9 +122,18 @@ public class Shop
 		boolean b = m == 0;
 		Inventory i = SignChestShopPlugin.inst.getShop(data, b, (b ? "Buy" : "Sell"));
 		InventoryView iv = player.openInventory(i);
+		transactions.add(iv);
 		if(m == ShopMode.BUY.ID)SignChestShopPlugin.inst.buy.add(iv);
 		else if(m == ShopMode.SELL.ID)SignChestShopPlugin.inst.sell.add(iv);
 		return iv;
+	}
+	
+	/**
+	 * @return An array of all {@link org.bukkit.InventoryView}s currently open.
+	 */
+	public InventoryView[] getBrowsing()
+	{
+		return transactions.toArray(new InventoryView[transactions.size()]);
 	}
 	
 	/**
