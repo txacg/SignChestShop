@@ -20,6 +20,7 @@ public class SignChestShopAPI
 	{
 		this.plugin = plugin;
 	}
+	
 	/**
 	 * Returns the shop at the given location.
 	 * @param block - The block where the shop is located
@@ -31,6 +32,7 @@ public class SignChestShopAPI
 		if(c == null)return null;
 		return new Shop(c);
 	}
+	
 	/**
 	 * Returns the shop at the given location.
 	 * Same as calling getShop(loc.getBlock());
@@ -42,6 +44,7 @@ public class SignChestShopAPI
 	{
 		return getShop(loc.getBlock());
 	}
+	
 	/**
 	 * Returns the inventory of the shop that a player would see.
 	 * If you are trying to have a player start a transaction, use {@link #getShop(Block)} and then
@@ -58,6 +61,7 @@ public class SignChestShopAPI
 		if(c == null)return null;
 		return plugin.getShop(c, showPrice, title);
 	}
+	
 	/**
 	 * Returns the inventory of the shop that a player would see.
 	 * If you are trying to have a player start a transaction, use {@link #getShop(Block)} and then
@@ -72,6 +76,7 @@ public class SignChestShopAPI
 	{
 		return getShopInventory(block, showPrice, "Buy");
 	}
+	
 	/**
 	 * @deprecated This method will open a sell shop as a buy shop.  Use {@link Shop#open(Player)} instead.
 	 * 
@@ -90,6 +95,7 @@ public class SignChestShopAPI
 		plugin.buy.add(iv);
 		return iv;
 	}
+	
 	/**
 	 * Returns all shops.
 	 * @return All shops.

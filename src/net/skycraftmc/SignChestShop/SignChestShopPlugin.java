@@ -84,7 +84,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		String[] vercheck = getServer().getClass().getPackage().getName().split("[.]", 4);
 		if(vercheck.length == 4)
 		{
-			if(!vercheck[3].equals("v1_5_R3"))getLogger().warning(
+			if(!vercheck[3].equals("v1_6_R2"))getLogger().warning(
 					"This version of SignChestShop may not be compatible with this version of CraftBukkit.");
 		}
 		else getLogger().warning(
@@ -161,6 +161,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			});
 		}
 	}
+	
 	/**
 	 * Returns the plugin's API
 	 * @return The API
@@ -169,6 +170,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 	{
 		return api;
 	}
+	
 	public void onDisable()
 	{
 		File f = getDataFolder();
@@ -267,7 +269,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			boolean e = true;
 			for(String x:s.getLines())
 			{
-				if(!x.isEmpty())e = false;
+				if(!x.trim().isEmpty())e = false;
 			}
 			Location bloc = b.getLocation();
 			NBTTagCompound shop = new NBTTagCompound();
@@ -798,20 +800,24 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		if(sender.hasPermission("scs.refresh"))msg(sender, def("/scs refresh", "Updates the config"));
 		return true;
 	}
+	
 	private String def(String a, String b)
 	{
 		return ChatColor.AQUA + a + ChatColor.DARK_RED + " - " + ChatColor.GOLD + b;
 	}
+	
 	private boolean noPerm(CommandSender sender, String perm)
 	{
 		if(sender.hasPermission(perm))return false;
 		sender.sendMessage(color(config.getString("message.cmd.noperm", Messages.DEFAULT_CMD_NOPERM)));
 		return true;
 	}
+	
 	protected net.minecraft.server.v1_6_R2.ItemStack nmsStack(ItemStack i)
 	{
 		return CraftItemStack.asNMSCopy(i);
 	}
+	
 	protected NBTTagCompound getShopData(Block b)
 	{
 		Location bloc = b.getLocation();
@@ -836,6 +842,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		}
 		return null;
 	}
+	
 	protected void removeShop(NBTTagCompound s)
 	{
 		NBTTagList shops = data.getList("Shops");
@@ -847,6 +854,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		}
 		data.set("Shops", newshops);
 	}
+	
 	protected Inventory getShop(NBTTagCompound shop, boolean buy, String title)
 	{
 		NBTTagList items = shop.getList("items");
@@ -896,10 +904,12 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		}
 		return i;
 	}
+	
 	protected Inventory getShop(NBTTagCompound shop, boolean buy)
 	{
 		return getShop(shop, buy, "Shop");
 	}
+	
 	private class DKey<V, O>
 	{
 		private V a;

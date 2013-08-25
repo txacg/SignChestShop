@@ -27,6 +27,7 @@ public class Shop
 			throw new IllegalArgumentException("Invalid shop data");
 		this.data = data;
 	}
+	
 	/**
 	 * Returns the x-coordinate of this shop
 	 * @return This shop's x-coordinate
@@ -35,6 +36,7 @@ public class Shop
 	{
 		return data.getDouble("x");
 	}
+	
 	/**
 	 * Returns the y-coordinate of this shop
 	 * @return This shop's y-coordinate
@@ -43,6 +45,7 @@ public class Shop
 	{
 		return data.getDouble("y");
 	}
+	
 	/**
 	 * Returns the z-coordinate of this shop
 	 * @return This shop's z-coordinate
@@ -51,6 +54,7 @@ public class Shop
 	{
 		return data.getDouble("z");
 	}
+	
 	/**
 	 * Returns the name of this shop's world
 	 * @return This shop's world
@@ -59,6 +63,7 @@ public class Shop
 	{
 		return data.getString("world");
 	}
+	
 	/**
 	 * Returns the contents of this shop. 
 	 * Length of the array varies based on the contents.
@@ -72,6 +77,7 @@ public class Shop
 				CraftItemStack.asCraftMirror((net.minecraft.server.v1_6_R2.ItemStack.createStack((NBTTagCompound)ilist.get(a))));
 		return i;
 	}
+	
 	public boolean equals(Object o)
 	{
 		if(!(o instanceof Shop))return false;
@@ -81,10 +87,12 @@ public class Shop
 		if(s.getZ() != getZ())return false;
 		return s.getWorld().equals(getWorld());
 	}
+	
 	protected NBTTagCompound getData()
 	{
 		return data;
 	}
+	
 	/**
 	 * @return The mode of the shop, such as BUY or SELL
 	 */
@@ -92,6 +100,7 @@ public class Shop
 	{
 		return ShopMode.getByID(data.getInt("mode"));
 	}
+	
 	/**
 	 * Sets the {@link ShopMode} of this shop.
 	 */
@@ -100,6 +109,7 @@ public class Shop
 		if(mode == null)throw new IllegalArgumentException("The shop mode is null.");
 		data.setInt("mode", mode.ID);
 	}
+	
 	/**
 	 * Opens the shop for the specified player.
 	 * @param player - The player
@@ -115,6 +125,7 @@ public class Shop
 		else if(m == ShopMode.SELL.ID)SignChestShopPlugin.inst.sell.add(iv);
 		return iv;
 	}
+	
 	/**
 	 * Represents the modes of a shop.
 	 */
@@ -143,6 +154,7 @@ public class Shop
 			if(id < 0 || id >= values().length)return null;
 			return values()[id];
 		}
+		
 		/**
 		 * Finds and returns a {@link ShopMode} with the specified name, or null if not found.
 		 * @param name - The ID of the shop mode
@@ -156,6 +168,7 @@ public class Shop
 			}
 			return null;
 		}
+		
 		/**
 		 * @return The ID of this shop mode.  Equal to this {@link ShopMode}'s {@link #ID} variable.
 		 * @see #ID
@@ -165,6 +178,7 @@ public class Shop
 			return ID;
 		}
 	}
+	
 	/**
 	 * Not yet implemented.
 	 * @return The owner of this shop, or null if this is an admin shop.
