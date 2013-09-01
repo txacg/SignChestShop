@@ -123,8 +123,6 @@ public class Shop
 		Inventory i = SignChestShopPlugin.inst.getShop(data, b, (b ? "Buy" : "Sell"));
 		InventoryView iv = player.openInventory(i);
 		transactions.add(iv);
-		if(m == ShopMode.BUY.ID)SignChestShopPlugin.inst.buy.add(iv);
-		else if(m == ShopMode.SELL.ID)SignChestShopPlugin.inst.sell.add(iv);
 		return iv;
 	}
 	

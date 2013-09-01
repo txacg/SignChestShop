@@ -29,6 +29,7 @@ import net.skycraftmc.SignChestShop.util.Updater;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
@@ -57,8 +58,6 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 	private StringConfig config;
 	protected NBTTagCompound data;
 	protected ArrayList<Shop> shops;
-	protected ArrayList<InventoryView>buy = new ArrayList<InventoryView>();
-	protected ArrayList<InventoryView>sell = new ArrayList<InventoryView>();
 	private HashMap<InventoryView, Block>create = new HashMap<InventoryView, Block>();
 	private HashMap<InventoryView, DKey<Double, NBTTagCompound>>price = 
 			new HashMap<InventoryView, DKey<Double, NBTTagCompound>>();
@@ -199,10 +198,11 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				ioe.printStackTrace();
 			}
 		}
-		for(InventoryView i:buy)i.close();
-		buy.clear();
-		for(InventoryView i:sell)i.close();
-		sell.clear();
+		for(Shop s: shops)
+		{
+			for(InventoryView i: s.transactions)i.close();
+			s.transactions.clear();
+		}
 		for(Map.Entry<InventoryView, Block>k:create.entrySet())k.getKey().close();
 		create.clear();
 		for(Map.Entry<InventoryView, DKey<Double, NBTTagCompound>> k:price.entrySet())k.getKey().close();
@@ -220,13 +220,11 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		if(b == null)return;
 		if(b.getType() != Material.SIGN_POST && b.getType() != Material.WALL_SIGN)return;
 		//Sign s = (Sign)b.getState();
-		NBTTagCompound shop = getShopData(b);
+		Shop shop = getShop(b);
 		if(shop == null)return;
-		ShopMode mode = ShopMode.getByID(shop.getInt("mode"));
-		String title = "Shop";
+		ShopMode mode = shop.getMode();
 		if(mode == ShopMode.BUY)
 		{
-			title = "Buy";
 			if(!event.getPlayer().hasPermission("scs.buy") && config.getBoolean("buy.perms", Options.DEFAULT_BUY_PERMS))
 			{
 				event.getPlayer().sendMessage(color(config.getString("messages.buy.noperm", Messages.DEFAULT_BUY_NOPERM)));
@@ -235,23 +233,21 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		}
 		else if(mode == ShopMode.SELL)
 		{
-			title = "Sell";
 			if(!event.getPlayer().hasPermission("scs.sell") && config.getBoolean("sell.perms", Options.DEFAULT_SELL_PERMS))
 			{
 				event.getPlayer().sendMessage(color(config.getString("messages.sell.noperm", Messages.DEFAULT_SELL_NOPERM)));
 				return;
 			}
 		}
-		Inventory i = getShop(shop, true, title);
-		InventoryView iv = event.getPlayer().openInventory(i);
-		if(mode == ShopMode.BUY)buy.add(iv);
-		else if(mode == ShopMode.SELL)sell.add(iv);
+		shop.open(event.getPlayer());
 	}
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void close(InventoryCloseEvent event)
 	{
-		if(buy.contains(event.getView()))buy.remove(event.getView());
-		if(sell.contains(event.getView()))sell.remove(event.getView());
+		for(Shop s: shops)
+		{
+			if(s.transactions.contains(event.getView()))s.transactions.remove(event.getView());
+		}
 		if(!(event.getPlayer() instanceof Player))return;
 		Player player = (Player)event.getPlayer();
 		if(create.containsKey(event.getView()))
@@ -336,7 +332,17 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		if(event.getWhoClicked() instanceof Player)player = (Player)event.getWhoClicked();
 		if(player == null)return;
 		boolean top = event.getRawSlot() < event.getView().getTopInventory().getSize();
-		if(buy.contains(event.getView()))
+		Shop shop = null;
+		for(Shop s: shops)
+		{
+			if(s.transactions.contains(event.getView()))
+			{
+				shop = s;
+				break;
+			}
+		}
+		if(shop == null)return;
+		if(shop.getMode() == ShopMode.BUY)
 		{
 			if(top)
 			{
@@ -427,7 +433,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				event.setCancelled(true);
 			}
 		}
-		else if(sell.contains(event.getView()))
+		else if(shop.getMode() == ShopMode.SELL)
 		{
 			if(top)
 			{
@@ -498,7 +504,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		{
 			DKey<Double, NBTTagCompound> dkey = price.get(event.getView());
 			double p = dkey.getKey();
-			NBTTagCompound shop = dkey.getValue();
+			NBTTagCompound tshop = dkey.getValue();
 			price.remove(event.getView());
 			if(!top)
 			{
@@ -508,7 +514,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				return;
 			}
 			event.setCancelled(true);
-			NBTTagList items = shop.getList("items");
+			NBTTagList items = tshop.getList("items");
 			NBTTagCompound item = (NBTTagCompound) items.get(event.getSlot());
 			if(!item.hasKey("tag"))item.setCompound("tag", new NBTTagCompound());
 			NBTTagCompound tag = item.getCompound("tag");
@@ -843,6 +849,18 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			}
 		}
 		data.set("Shops", newshops);
+	}
+	
+	protected Shop getShop(Block block)
+	{
+		for(Shop shop: shops)
+		{
+			World w = getServer().getWorld(shop.getWorld());
+			if(w == null)continue;
+			Location loc = new Location(w, shop.getX(), shop.getY(), shop.getZ()).getBlock().getLocation();
+			if(loc.equals(block.getLocation()))return shop;
+		}
+		return null;
 	}
 	
 	protected Inventory getShop(NBTTagCompound shop, boolean buy, String title)

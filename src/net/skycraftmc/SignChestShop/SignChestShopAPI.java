@@ -28,9 +28,7 @@ public class SignChestShopAPI
 	 */
 	public Shop getShop(Block block)
 	{
-		NBTTagCompound c = plugin.getShopData(block);
-		if(c == null)return null;
-		return new Shop(c);
+		return plugin.getShop(block);
 	}
 	
 	/**
@@ -78,7 +76,7 @@ public class SignChestShopAPI
 	}
 	
 	/**
-	 * @deprecated This method will open a sell shop as a buy shop.  Use {@link Shop#open(Player)} instead.
+	 * @deprecated This method will open a shop regularly, regardless of its type.  Use {@link Shop#open(Player)} instead.
 	 * 
 	 * Opens a buy shop for the specified player.
 	 * @param player - The player who is purchasing the items
@@ -89,11 +87,9 @@ public class SignChestShopAPI
 	 */
 	public InventoryView beginBuying(Player player, Block block)
 	{
-		Inventory i = getShopInventory(block, true);
-		if(i == null)return null;
-		InventoryView iv = player.openInventory(i);
-		plugin.buy.add(iv);
-		return iv;
+		Shop s = getShop(block);
+		if(s == null)return null;
+		return s.open(player);
 	}
 	
 	/**
