@@ -127,6 +127,21 @@ public class Shop
 	}
 	
 	/**
+	 * Reopens all currently open transactions.
+	 */
+	public void update()
+	{
+		ArrayList<Player> p = new ArrayList<Player>();
+		for(InventoryView iv: transactions)
+		{
+			p.add((Player) iv.getPlayer());
+			iv.close();
+		}
+		for(Player pl : p)
+			open(pl);
+	}
+	
+	/**
 	 * @return An array of all {@link org.bukkit.InventoryView}s currently open.
 	 */
 	public InventoryView[] getBrowsing()

@@ -57,7 +57,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 {
 	private StringConfig config;
 	protected NBTTagCompound data;
-	protected ArrayList<Shop> shops;
+	protected ArrayList<Shop> shops = new ArrayList<Shop>();
 	private HashMap<InventoryView, Block>create = new HashMap<InventoryView, Block>();
 	private HashMap<InventoryView, DKey<Double, NBTTagCompound>>price = 
 			new HashMap<InventoryView, DKey<Double, NBTTagCompound>>();
@@ -209,6 +209,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		price.clear();
 		for(Map.Entry<InventoryView, NBTTagCompound> k:edit.entrySet())k.getKey().close();
 		edit.clear();
+		shops.clear();
 		initsuccess = false;
 	}
 	@EventHandler(priority = EventPriority.MONITOR)
@@ -244,10 +245,16 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void close(InventoryCloseEvent event)
 	{
+		Shop shp = null;
 		for(Shop s: shops)
 		{
-			if(s.transactions.contains(event.getView()))s.transactions.remove(event.getView());
+			if(s.transactions.contains(event.getView()))
+			{
+				shp = s;
+				s.transactions.remove(event.getView());
+			}
 		}
+		if(shp == null)return;
 		if(!(event.getPlayer() instanceof Player))return;
 		Player player = (Player)event.getPlayer();
 		if(create.containsKey(event.getView()))
@@ -302,6 +309,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		{
 			player.sendMessage(var(config.getString("message.price.cancel", Messages.DEFAULT_PRICE_CANCEL), player));
 			price.remove(event.getView());
+			shp.update();
 			return;
 		}
 		else if(edit.containsKey(event.getView()))
@@ -322,6 +330,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			shop.set("items", items);
 			player.sendMessage(var(config.getString("message.edit", Messages.DEFAULT_EDIT), player));
 			edit.remove(event.getView());
+			shp.update();
 		}
 	}
 	@EventHandler
@@ -898,8 +907,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 						else price = "" + rprice;
 					}
 				}
-				lore.add(new NBTTagString("", 
-						ChatColor.AQUA + "Price: " + ChatColor.GOLD + price));
+				lore.add(new NBTTagString("", ChatColor.AQUA + "Price: " + ChatColor.GOLD + price));
 			}
 			ilist.add(cis);
 		}
@@ -1063,6 +1071,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			if(!a.hasKey("mode"))a.setInt("mode", ShopMode.BUY.ID);
 		}
 	}
+	
 	private void loadOld(File dat)throws Exception
 	{
 		DataInputStream dis = new DataInputStream(new FileInputStream(dat));
@@ -1070,6 +1079,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		m.setAccessible(true);
 		m.invoke(data, dis);
 	}
+	
 	private void buildShops()
 	{
 		NBTTagList shops = data.getList("Shops");
