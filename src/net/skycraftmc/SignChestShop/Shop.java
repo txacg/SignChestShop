@@ -89,15 +89,41 @@ public class Shop
 	}
 	
 	/**
+	 * Returns the contents of this shop. The slots in the shop that
+	 * contain no items will be null.
 	 * @return The contents of this shop.
 	 */
 	public ItemStack[] getContents()
 	{
 		NBTTagList ilist = data.getList("items");
 		ItemStack[] i = new ItemStack[ilist.size()];
-		for(int a = 0; a < ilist.size(); a ++)i[a] = 
-				CraftItemStack.asCraftMirror((net.minecraft.server.v1_6_R2.ItemStack.createStack((NBTTagCompound)ilist.get(a))));
+		for(int a = 0; a < ilist.size(); a ++)
+		{
+			NBTTagCompound c = (NBTTagCompound) ilist.get(a);
+			if(c.c().size() == 0)i[a] = null;
+			else i[a] = CraftItemStack.asCraftMirror((net.minecraft.server.v1_6_R2.ItemStack.createStack(c)));
+		}
 		return i;
+	}
+	
+	/**
+	 * Sets the price of the item at the specified index.
+	 * Use -1 for display only and 0 for free.
+	 * @param index - The index of the item
+	 * @param price - The price of the item
+	 */
+	public void setPrice(int index, double price)
+	{
+		NBTTagList ilist = data.getList("items");
+		if(index >= ilist.size() || index < 0)
+			throw new ArrayIndexOutOfBoundsException(index);
+		NBTTagCompound c = (NBTTagCompound) ilist.get(index);
+		if(c.c().size() == 0)
+			throw new IllegalArgumentException("index " + index + " contains no item");
+		if(!c.hasKey("tag"))c.setCompound("tag", new NBTTagCompound());
+		NBTTagCompound tag = c.getCompound("tag");
+		if(price >= 0)tag.setDouble("scs_price", price);
+		else tag.remove("scs_price");
 	}
 	
 	public boolean equals(Object o)

@@ -127,7 +127,8 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				{
 					loadOld(dat);
 					log.info("Converted old SignChestShopData");
-				}catch(Exception ea)
+				}
+				catch(Exception ea)
 				{
 					log.warning("Failed to load/convert data!");
 					e = ea;
@@ -253,8 +254,9 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				shp = s;
 				s.transactions.remove(event.getView());
 			}
+			else if(price.containsKey(event.getView()))shp = s;
+			else if(edit.containsKey(event.getView()))shp = s;
 		}
-		if(shp == null)return;
 		if(!(event.getPlayer() instanceof Player))return;
 		Player player = (Player)event.getPlayer();
 		if(create.containsKey(event.getView()))
@@ -305,6 +307,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 							bloc.getY() + ", " + bloc.getZ() + " at world " + bloc.getWorld().getName());
 			create.remove(event.getView());
 		}
+		else if(shp == null)return;
 		else if(price.containsKey(event.getView()))
 		{
 			player.sendMessage(var(config.getString("message.price.cancel", Messages.DEFAULT_PRICE_CANCEL), player));
@@ -342,16 +345,20 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		if(player == null)return;
 		boolean top = event.getRawSlot() < event.getView().getTopInventory().getSize();
 		Shop shop = null;
+		boolean transaction = false;
 		for(Shop s: shops)
 		{
 			if(s.transactions.contains(event.getView()))
 			{
 				shop = s;
+				transaction = true;
 				break;
 			}
+			else if(price.containsKey(event.getView()))shop = s;
+			else if(edit.containsKey(event.getView()))shop = s;
 		}
 		if(shop == null)return;
-		if(shop.getMode() == ShopMode.BUY)
+		if(shop.getMode() == ShopMode.BUY && transaction)
 		{
 			if(top)
 			{
@@ -366,7 +373,6 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				net.minecraft.server.v1_6_R2.ItemStack nms = nmsStack(i);
 				if(!nms.getTag().hasKey("scs_price"))
 				{
-					event.setCancelled(true);
 					player.updateInventory();
 					return;
 				}
@@ -427,7 +433,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				event.setCancelled(true);
 			}
 		}
-		else if(shop.getMode() == ShopMode.SELL)
+		else if(shop.getMode() == ShopMode.SELL && transaction)
 		{
 			if(top)
 			{
@@ -443,11 +449,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				}
 				if(t.getType() != i.getType())return;
 				net.minecraft.server.v1_6_R2.ItemStack nms = nmsStack(t);
-				if(!nms.getTag().hasKey("scs_price"))
-				{
-					event.setCancelled(true);
-					return;
-				}
+				if(!nms.getTag().hasKey("scs_price"))return;
 				net.minecraft.server.v1_6_R2.ItemStack nms2 = nms.cloneItemStack();
 				stripSCSData(nms2);
 				CraftItemStack tn = CraftItemStack.asCraftMirror(nms2);
@@ -491,7 +493,6 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		{
 			DKey<Double, NBTTagCompound> dkey = price.get(event.getView());
 			double p = dkey.getKey();
-			NBTTagCompound tshop = dkey.getValue();
 			price.remove(event.getView());
 			if(!top)
 			{
@@ -501,12 +502,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				return;
 			}
 			event.setCancelled(true);
-			NBTTagList items = tshop.getList("items");
-			NBTTagCompound item = (NBTTagCompound) items.get(event.getSlot());
-			if(!item.hasKey("tag"))item.setCompound("tag", new NBTTagCompound());
-			NBTTagCompound tag = item.getCompound("tag");
-			if(p >= 0)tag.setDouble("scs_price", p);
-			else tag.remove("scs_price");
+			shop.setPrice(event.getSlot(), p);
 			event.getView().close();
 			player.sendMessage(var(config.getString("message.price.set", Messages.DEFAULT_PRICE_SET), player));
 		}
@@ -859,9 +855,11 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			if(c != s)newshops.add(c);
 			else
 			{
-				for(Shop sh:this.shops)
+				Iterator<Shop> it = this.shops.iterator();
+				while(it.hasNext())
 				{
-					if(sh.data == c)this.shops.remove(sh);
+					Shop sh = it.next();
+					if(sh.data == c)it.remove();
 				}
 			}
 		}
