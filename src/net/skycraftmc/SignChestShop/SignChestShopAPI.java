@@ -2,6 +2,7 @@ package net.skycraftmc.SignChestShop;
 
 import net.minecraft.server.v1_6_R2.NBTTagCompound;
 import net.minecraft.server.v1_6_R2.NBTTagList;
+import net.skycraftmc.SignChestShop.Shop.ShopMode;
 
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -76,19 +77,20 @@ public class SignChestShopAPI
 	}
 	
 	/**
-	 * @deprecated This method will open a shop regularly, regardless of its type.  Use {@link Shop#open(Player)} instead.
+	 * @deprecated This method will do nothing for sell shops.  Use {@link Shop#open(Player)} instead.
 	 * 
 	 * Opens a buy shop for the specified player.
 	 * @param player - The player who is purchasing the items
 	 * @param block - The shop
 	 * @return The {@link org.bukkit.inventory.InventoryView} associated with the transaction,
-	 *  or null if the shop is not found.
+	 *  or null if the shop is not found or if the shop is not a buy shop.
 	 *  @see Shop#open(Player)
 	 */
 	public InventoryView beginBuying(Player player, Block block)
 	{
 		Shop s = getShop(block);
 		if(s == null)return null;
+		if(s.getMode() != ShopMode.BUY)return null;
 		return s.open(player);
 	}
 	

@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import net.minecraft.server.v1_6_R2.NBTTagCompound;
 import net.minecraft.server.v1_6_R2.NBTTagList;
 
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_6_R2.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -68,6 +71,24 @@ public class Shop
 	}
 	
 	/**
+	 * Returns the location of this shop.
+	 * @return This shop's location
+	 */
+	public Location getLocation()
+	{
+		return new Location(Bukkit.getWorld(getWorld()), getX(), getY(), getZ());
+	}
+	
+	/**
+	 * Returns the block of this shop. This is the sign itself, not the block it is attached to.
+	 * @return The block of this shop.
+	 */
+	public Block getBlock()
+	{
+		return getLocation().getBlock();
+	}
+	
+	/**
 	 * @return The contents of this shop.
 	 */
 	public ItemStack[] getContents()
@@ -120,7 +141,7 @@ public class Shop
 	{
 		int m = getMode().ID;
 		boolean b = m == 0;
-		Inventory i = SignChestShopPlugin.inst.getShop(data, b, (b ? "Buy" : "Sell"));
+		Inventory i = SignChestShopPlugin.inst.getShop(data, true, (b ? "Buy" : "Sell"));
 		InventoryView iv = player.openInventory(i);
 		transactions.add(iv);
 		return iv;
