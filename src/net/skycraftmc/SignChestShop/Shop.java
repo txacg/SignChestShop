@@ -2,6 +2,7 @@ package net.skycraftmc.SignChestShop;
 
 import java.util.ArrayList;
 
+import net.minecraft.server.v1_6_R2.NBTBase;
 import net.minecraft.server.v1_6_R2.NBTTagCompound;
 import net.minecraft.server.v1_6_R2.NBTTagList;
 
@@ -124,6 +125,55 @@ public class Shop
 		NBTTagCompound tag = c.getCompound("tag");
 		if(price >= 0)tag.setDouble("scs_price", price);
 		else tag.remove("scs_price");
+	}
+	
+	/**
+	 * Sets the item at the specified index.
+	 * @param index - The index of the item.
+	 * @param item - The {@link ItemStack}.
+	 * @param retainPrice - If this is true, then the price will be kept.
+	 */
+	public void setItem(int index, ItemStack item, boolean retainPrice)
+	{
+		if(item == null)
+			throw new NullPointerException("item is null");
+		NBTTagList ilist = data.getList("items");
+		if(index >= ilist.size() || index < 0)
+			throw new ArrayIndexOutOfBoundsException(index);
+		Double oldprice = null;
+		NBTTagCompound old = (NBTTagCompound) ilist.get(index);
+		if(retainPrice)
+		{
+			if(old.hasKey("tag"))
+			{
+				NBTTagCompound tag = old.getCompound("tag");
+				if(tag.hasKey("scs_price"))oldprice = tag.getDouble("scs_price");
+			}
+		}
+		net.minecraft.server.v1_6_R2.ItemStack nms = CraftItemStack.asNMSCopy(item);
+		NBTTagCompound c = new NBTTagCompound();
+		nms.save(c);
+		if(oldprice != null)
+			c.setDouble("scs_price", oldprice.doubleValue());
+		for(Object o:old.c())
+			old.remove(((NBTBase)o).getName());
+		for(Object o:c.c())
+		{
+			NBTBase b = (NBTBase)o;
+			old.set(b.getName(), b);
+		}
+	}
+	
+	/**
+	 * Sets the item at the specified index.
+	 * This has the same effect as {@link #setItem(int, ItemStack, boolean)}
+	 * with retainPrice as false.
+	 * @param index - The index of the item.
+	 * @param item - The {@link ItemStack}.
+	 */
+	public void setItem(int index, ItemStack item)
+	{
+		setItem(index, item, false);
 	}
 	
 	public boolean equals(Object o)
