@@ -358,133 +358,99 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			else if(edit.containsKey(event.getView()))shop = s;
 		}
 		if(shop == null)return;
-		if(shop.getMode() == ShopMode.BUY && transaction)
+		if(transaction)
 		{
+			ShopMode mode = shop.getMode();
+			String str = mode == ShopMode.BUY ? "buy" : "sell";
 			if(top)
 			{
 				event.setCancelled(true);
-				ItemStack t = event.getCurrentItem();
-				if(t == null || t.getType() == Material.AIR)
+				player.updateInventory();
+				ItemStack current = event.getCurrentItem();
+				ItemStack cursor = player.getItemOnCursor();
+				if(current == null || current.getType() == Material.AIR)
 				{
-					player.updateInventory();
+					if(mode == ShopMode.SELL)
+						player.sendMessage(var(config.getString("message.sell.invalid", Messages.DEFAULT_SELL_INVALID), player));
 					return;
 				}
-				ItemStack i = t.clone();
-				net.minecraft.server.v1_6_R2.ItemStack nms = nmsStack(i);
-				if(!nms.getTag().hasKey("scs_price"))
-				{
-					player.updateInventory();
+				net.minecraft.server.v1_6_R2.ItemStack currentNMS = nmsStack(current.clone());
+				if(!currentNMS.getTag().hasKey("scs_price"))
 					return;
-				}
-				if(player.getItemOnCursor().getType() != Material.AIR)
+				double price = currentNMS.getTag().getDouble("scs_price");
+				if(config.getBoolean(str + ".permsid", mode == ShopMode.BUY ? Options.DEFAULT_BUY_PERMSID : Options.DEFAULT_SELL_PERMSID))
 				{
-					if(player.getItemOnCursor().getType() != t.getType())return;
-					if(!isSimilarUnstripped(nms, nmsStack(player.getItemOnCursor())))return;
-				}
-				if(i.getType() == Material.AIR)return;
-				int a = i.getType().getMaxStackSize();
-				int amount = 1;
-				double price = nms.getTag().getDouble("scs_price");
-				String buymode = config.getString("buy.mode", "single");
-				if(buymode.equalsIgnoreCase("stack") || 
-						(event.isShiftClick() && config.getBoolean("buy.shiftclick", true)))amount = a;
-				else if(buymode.equalsIgnoreCase("amount"))amount = i.getAmount();
-				else amount = 1;
-				if(config.getBoolean("buy.permsid", Options.DEFAULT_BUY_PERMSID))
-				{
-					if(!player.hasPermission("scs.buy." + i.getTypeId()) && !player.hasPermission("scs.buy.*"))
+					if(!player.hasPermission("scs." + str + "." + current.getTypeId()) && !player.hasPermission("scs." + str + ".*"))
 					{
-						player.sendMessage(var(config.getString("message.buy.noperm", Messages.DEFAULT_BUY_NOPERM), player));
-						player.updateInventory();
+						player.sendMessage(var(config.getString("message." + str + ".noperm",  mode == ShopMode.BUY ? 
+								Messages.DEFAULT_BUY_NOPERM : Messages.DEFAULT_SELL_NOPERM), player));
 						return;
 					}
 				}
-				int iamount = player.getItemOnCursor().getAmount();
-				if(amount + iamount > a)amount = a - iamount;
-				price = price*amount;
+				
+				if(cursor.getType() != Material.AIR)
+				{
+					if(!isSimilarUnstripped(currentNMS, nmsStack(cursor)))return;
+				}
+				
 				String curname = (price == 1 ? econ.currencyNameSingular() : econ.currencyNamePlural());
 				if(!curname.isEmpty())curname = " " + curname;
-				if(!econ.has(player.getName(), price))
+				
+				if(shop.getMode() == ShopMode.BUY)
 				{
-					player.sendMessage(varBuy(config.getString("message.buy.fail", Messages.DEFAULT_BUY_FAIL), player,
-							amount, price + curname, price));
-					event.setCancelled(true);
-					return;
-				}
-				if(price != 0)
-				{
-					econ.withdrawPlayer(player.getName(), price);
-					player.sendMessage(varBuy(config.getString("message.buy.success", 
-							Messages.DEFAULT_BUY_SUCCESS), player, amount, price + curname, price));
-				}
-				else player.sendMessage(varBuy(config.getString("message.buy.free", 
-						Messages.DEFAULT_BUY_FREE), player, amount, price + curname, price));
-				stripSCSData(nms);
-				ItemStack n = CraftItemStack.asCraftMirror(nms);
-				n.setAmount(amount + iamount);
-				player.setItemOnCursor(n);
-			}
-			else if((top && player.getItemOnCursor().getType() != Material.AIR && 
-					event.getSlot() != -999) || (!top && event.getCurrentItem().getType() != Material.AIR
-					&& event.isShiftClick()))
-			{
-				player.sendMessage(var(config.getString("message.buy.invalid", Messages.DEFAULT_BUY_INVALID), player));
-				player.updateInventory();
-				event.setCancelled(true);
-			}
-		}
-		else if(shop.getMode() == ShopMode.SELL && transaction)
-		{
-			if(top)
-			{
-				ItemStack i = player.getItemOnCursor();
-				ItemStack t = event.getCurrentItem();
-				event.setCancelled(true);
-				player.updateInventory();
-				if(i.getType() == Material.AIR)return;
-				if(t.getType() == Material.AIR)
-				{
-					player.sendMessage(var(config.getString("message.sell.invalid", Messages.DEFAULT_SELL_INVALID), player));
-					return;
-				}
-				if(t.getType() != i.getType())return;
-				net.minecraft.server.v1_6_R2.ItemStack nms = nmsStack(t);
-				if(!nms.getTag().hasKey("scs_price"))return;
-				net.minecraft.server.v1_6_R2.ItemStack nms2 = nms.cloneItemStack();
-				stripSCSData(nms2);
-				CraftItemStack tn = CraftItemStack.asCraftMirror(nms2);
-				if(!i.isSimilar(tn))return;
-				double price = nms.getTag().getDouble("scs_price");
-				if(config.getBoolean("sell.permsid", Options.DEFAULT_SELL_PERMSID))
-				{
-					if(!player.hasPermission("scs.sell." + i.getTypeId()) && !player.hasPermission("scs.sell.*"))
+					int a = current.getType().getMaxStackSize();
+					int amount = 1;
+					String buymode = config.getString("buy.mode", "single");
+					if(buymode.equalsIgnoreCase("stack") || 
+							(event.isShiftClick() && config.getBoolean("buy.shiftclick", true)))amount = a;
+					else if(buymode.equalsIgnoreCase("amount"))amount = current.getAmount();
+					else amount = 1;
+					int iamount = player.getItemOnCursor().getAmount();
+					if(amount + iamount > a)amount = a - iamount;
+					price = price*amount;
+					if(!econ.has(player.getName(), price))
 					{
-						player.sendMessage(var(config.getString("message.sell.noperm", Messages.DEFAULT_SELL_NOPERM), player));
-						player.updateInventory();
+						player.sendMessage(varBuy(config.getString("message.buy.fail", Messages.DEFAULT_BUY_FAIL), player,
+								amount, price + curname, price));
+						event.setCancelled(true);
 						return;
 					}
-				}
-				int amount = i.getAmount();
-				if(event.isRightClick())amount = 1;
-				price *= amount;
-				String curname = (price == 1 ? econ.currencyNameSingular() : econ.currencyNamePlural());
-				if(!curname.isEmpty())curname = " " + curname;
-				econ.depositPlayer(player.getName(), price);
-				player.sendMessage(varBuy(config.getString("message.sell.success", 
-						Messages.DEFAULT_SELL_SUCCESS), player, amount, price + curname, price));
-				if(i.getAmount() - amount <= 0)player.setItemOnCursor(null);
-				else
-				{
-					ItemStack n = i.clone();
-					n.setAmount(n.getAmount() - amount);
+					if(price != 0)
+					{
+						econ.withdrawPlayer(player.getName(), price);
+						player.sendMessage(varBuy(config.getString("message.buy.success", 
+								Messages.DEFAULT_BUY_SUCCESS), player, amount, price + curname, price));
+					}
+					else player.sendMessage(varBuy(config.getString("message.buy.free", 
+							Messages.DEFAULT_BUY_FREE), player, amount, price + curname, price));
+					stripSCSData(currentNMS);
+					ItemStack n = CraftItemStack.asCraftMirror(currentNMS);
+					n.setAmount(amount + iamount);
 					player.setItemOnCursor(n);
 				}
+				else if(shop.getMode() == ShopMode.SELL)
+				{
+					if(cursor.getType() == Material.AIR)return;
+					int amount = cursor.getAmount();
+					if(event.isRightClick())amount = 1;
+					price *= amount;
+					if(price != 0)econ.depositPlayer(player.getName(), price);
+					player.sendMessage(varBuy(config.getString("message.sell.success", 
+							Messages.DEFAULT_SELL_SUCCESS), player, amount, price + curname, price));
+					if(cursor.getAmount() - amount <= 0)player.setItemOnCursor(null);
+					else
+					{
+						ItemStack n = cursor.clone();
+						n.setAmount(n.getAmount() - amount);
+						player.setItemOnCursor(n);
+					}
+				}
 			}
 			else if((top && player.getItemOnCursor().getType() != Material.AIR && 
 					event.getSlot() != -999) || (!top && event.getCurrentItem().getType() != Material.AIR
 					&& event.isShiftClick()))
 			{
-				player.sendMessage(var(config.getString("message.sell.invalid", Messages.DEFAULT_SELL_INVALID), player));
+				player.sendMessage(var(config.getString("message." + str + ".invalid", Messages.DEFAULT_SELL_INVALID), player));
 				player.updateInventory();
 				event.setCancelled(true);
 			}
@@ -516,25 +482,17 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				if(!top || sclick)
 				{
 					net.minecraft.server.v1_6_R2.ItemStack nms = nmsStack(i);
-					NBTTagCompound tag = nms.getTag();
-					if(tag != null)
-					{
-						if(tag.hasKey("scs_price"))
+					stripSCSData(nms);
+					event.setCursor(CraftItemStack.asCraftMirror(nms));
+					final Player runnablePlayer = player;
+					getServer().getScheduler().scheduleSyncDelayedTask(this,
+						new Runnable()
 						{
-							tag.remove("scs_price");
-							if(tag.c().size() == 0)nms.setTag(null);
-							event.setCursor(CraftItemStack.asCraftMirror(nms));
-							final Player runnablePlayer = player;
-							getServer().getScheduler().scheduleSyncDelayedTask(this,
-								new Runnable()
-								{
-									public void run() 
-									{
-										runnablePlayer.updateInventory();
-									}
-								});
-						}
-					}
+							public void run() 
+							{
+								runnablePlayer.updateInventory();
+							}
+					});
 				}
 			}
 		}
@@ -649,7 +607,8 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				if(noConsole(sender))return true;
 				Player player = (Player)sender;
 				Block b = player.getTargetBlock(null, 5);
-				if(b == null)return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+				if(b == null)
+					return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
 				if(b.getType() != Material.SIGN_POST && b.getType() != Material.WALL_SIGN)
 					return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
 				Sign s = (Sign)b.getState();

@@ -108,6 +108,24 @@ public class Shop
 	}
 	
 	/**
+	 * @param index - The index of the item
+	 * @return The price of the item, -1 if it is display only, or -2 if no item exists at the index.
+	 */
+	public double getPrice(int index)
+	{
+		NBTTagList ilist = data.getList("items");
+		if(index >= ilist.size() || index < 0)
+			throw new ArrayIndexOutOfBoundsException(index);
+		NBTTagCompound c = (NBTTagCompound) ilist.get(index);
+		if(c.c().size() == 0)
+			return -2;
+		if(!c.hasKey("tag"))return -1;
+		NBTTagCompound tag = c.getCompound("tag");
+		if(!tag.hasKey("scs_price"))return -1;
+		return tag.getDouble("scs_price");
+	}
+	
+	/**
 	 * Sets the price of the item at the specified index.
 	 * Use -1 for display only and 0 for free.
 	 * @param index - The index of the item
@@ -135,32 +153,29 @@ public class Shop
 	 */
 	public void setItem(int index, ItemStack item, boolean retainPrice)
 	{
-		if(item == null)
-			throw new NullPointerException("item is null");
 		NBTTagList ilist = data.getList("items");
 		if(index >= ilist.size() || index < 0)
 			throw new ArrayIndexOutOfBoundsException(index);
-		Double oldprice = null;
 		NBTTagCompound old = (NBTTagCompound) ilist.get(index);
-		if(retainPrice)
+		if(item == null)
 		{
-			if(old.hasKey("tag"))
-			{
-				NBTTagCompound tag = old.getCompound("tag");
-				if(tag.hasKey("scs_price"))oldprice = tag.getDouble("scs_price");
-			}
+			for(Object o:old.c())
+				old.remove(((NBTBase)o).getName());
+			return;
 		}
 		net.minecraft.server.v1_6_R2.ItemStack nms = CraftItemStack.asNMSCopy(item);
 		NBTTagCompound c = new NBTTagCompound();
 		nms.save(c);
-		if(oldprice != null)
-			c.setDouble("scs_price", oldprice.doubleValue());
-		for(Object o:old.c())
-			old.remove(((NBTBase)o).getName());
 		for(Object o:c.c())
 		{
 			NBTBase b = (NBTBase)o;
-			old.set(b.getName(), b);
+			String name = b.getName();
+			if(name.equals("scs_price"))
+			{
+				if(!retainPrice)old.remove("scs_price");
+			}
+			else if(old.hasKey(name))old.set(name, b);
+			else old.remove(name);
 		}
 	}
 	
