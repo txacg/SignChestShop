@@ -412,7 +412,6 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					{
 						player.sendMessage(varBuy(config.getString("message.buy.fail", Messages.DEFAULT_BUY_FAIL), player,
 								amount, price + curname, price));
-						event.setCancelled(true);
 						return;
 					}
 					if(price != 0)
@@ -427,6 +426,8 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					ItemStack n = CraftItemStack.asCraftMirror(currentNMS);
 					n.setAmount(amount + iamount);
 					player.setItemOnCursor(n);
+					if(shop.getOwner() != null)
+						econ.depositPlayer(shop.getOwner(), price);
 				}
 				else if(shop.getMode() == ShopMode.SELL)
 				{
@@ -434,6 +435,16 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					int amount = cursor.getAmount();
 					if(event.isRightClick())amount = 1;
 					price *= amount;
+					if(shop.getOwner() != null)
+					{
+						if(!econ.has(shop.getOwner(), price))
+						{
+							player.sendMessage(varBuy(config.getString("message.sell.fail", 
+									Messages.DEFAULT_SELL_FAIL), player, amount, price + curname, price));
+							return;
+						}
+						econ.withdrawPlayer(shop.getOwner(), price);
+					}
 					if(price != 0)econ.depositPlayer(player.getName(), price);
 					player.sendMessage(varBuy(config.getString("message.sell.success", 
 							Messages.DEFAULT_SELL_SUCCESS), player, amount, price + curname, price));
@@ -597,6 +608,8 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		return new DKey<Block, NBTTagCompound>(sb, c);
 	}
 	
+	//TODO Use an alternative for getTargetBlock when one is available
+	@SuppressWarnings("deprecation")
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)
 	{
 		if(args.length >= 1)
@@ -692,10 +705,13 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			else if(args[0].equalsIgnoreCase("reload"))
 			{
 				if(noPerm(sender, "scs.reload"))return true;
-				try {
+				try 
+				{
 					config.load();
 					sender.sendMessage(ChatColor.GREEN + "Config reloaded successfully.");
-				} catch (IOException ioe) {
+				} 
+				catch (IOException ioe)
+				{
 					sender.sendMessage(ChatColor.RED + "An error occured while reloading the config" + 
 							(sender != getServer().getConsoleSender() ? ", check the console for details" : "") + "!");
 					log.log(Level.SEVERE, "Could not load config, reverting to defaults", ioe);
@@ -717,11 +733,11 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				Player player = (Player)sender;
 				Block b = player.getTargetBlock(null, 5);
 				if(b == null)return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
-				NBTTagCompound s = getShopData(b);
+				Shop s = getShop(b);
 				if(s == null)
 					return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
-				if(args[1].equalsIgnoreCase("buy"))s.setInt("mode", ShopMode.BUY.ID);
-				else if(args[1].equalsIgnoreCase("sell"))s.setInt("mode", ShopMode.SELL.ID);
+				if(args[1].equalsIgnoreCase("buy"))s.setMode(ShopMode.BUY);
+				else if(args[1].equalsIgnoreCase("sell"))s.setMode(ShopMode.SELL);
 				else return msg(player, ChatColor.RED + "Acceptable modes: buy, sell");
 				player.sendMessage(ChatColor.GREEN + "Mode set to " + args[1]);
 			}

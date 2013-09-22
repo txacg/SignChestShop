@@ -13,6 +13,7 @@ public class Messages
 	public static final String DEFAULT_SELL_NOPERM = "&cYou are not allowed to sell to shops.";
 	public static final String DEFAULT_SELL_NOPERMID = "&cYou are not allowed to sell this item!";
 	public static final String DEFAULT_SELL_INVALID = "&cYou can't do that!";
+	public static final String DEFAULT_SELL_FAIL = "&cThe owner of this shop doesn't have enough money to buy this item!";
 	
 	public static final String DEFAULT_EDIT = "&eSignChestShop edited!";
 	

@@ -262,6 +262,44 @@ public class Shop
 	}
 	
 	/**
+	 * @return The owner of this shop, or null if this is an admin shop.
+	 */
+	public String getOwner()
+	{
+		if(!data.hasKey("owner"))return null;
+		return data.getString("owner");
+	}
+	
+	/**
+	 * Sets the owner of this shop.
+	 * @param owner - The new owner of this shop, or null to remove the owner.
+	 */
+	public void setOwner(String owner)
+	{
+		if(owner == null)
+			data.remove("owner");
+		else data.setString("owner", owner);
+		update();
+	}
+	
+	/**
+	 * Sets the shop to be limited or not.
+	 * @param value - If the shop can run out of stock
+	 */
+	public void setLimited(boolean value)
+	{
+		data.setBoolean("limited", value);
+	}
+	
+	/**
+	 * @return True if the shop can run out of stock, otherwise false.
+	 */
+	public boolean isLimited()
+	{
+		return data.getBoolean("limited");
+	}
+
+	/**
 	 * Represents the modes of a shop.
 	 */
 	public enum ShopMode
@@ -312,16 +350,5 @@ public class Shop
 		{
 			return ID;
 		}
-	}
-	
-	/**
-	 * Not yet implemented.
-	 * @return The owner of this shop, or null if this is an admin shop.
-	 */
-	@Deprecated
-	public String getOwner()
-	{
-		if(!data.hasKey("owner"))return null;
-		return data.getString("owner");
 	}
 }
