@@ -2,14 +2,14 @@ package net.skycraftmc.SignChestShop;
 
 import java.util.ArrayList;
 
-import net.minecraft.server.v1_6_R2.NBTBase;
-import net.minecraft.server.v1_6_R2.NBTTagCompound;
-import net.minecraft.server.v1_6_R2.NBTTagList;
+import net.minecraft.server.v1_6_R3.NBTBase;
+import net.minecraft.server.v1_6_R3.NBTTagCompound;
+import net.minecraft.server.v1_6_R3.NBTTagList;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_6_R2.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_6_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
@@ -102,7 +102,7 @@ public class Shop
 		{
 			NBTTagCompound c = (NBTTagCompound) ilist.get(a);
 			if(c.c().size() == 0)i[a] = null;
-			else i[a] = CraftItemStack.asCraftMirror((net.minecraft.server.v1_6_R2.ItemStack.createStack(c)));
+			else i[a] = CraftItemStack.asCraftMirror((net.minecraft.server.v1_6_R3.ItemStack.createStack(c)));
 		}
 		return i;
 	}
@@ -163,7 +163,7 @@ public class Shop
 				old.remove(((NBTBase)o).getName());
 			return;
 		}
-		net.minecraft.server.v1_6_R2.ItemStack nms = CraftItemStack.asNMSCopy(item);
+		net.minecraft.server.v1_6_R3.ItemStack nms = CraftItemStack.asNMSCopy(item);
 		NBTTagCompound c = new NBTTagCompound();
 		nms.save(c);
 		for(Object o:c.c())

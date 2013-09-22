@@ -18,10 +18,10 @@ import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
 
 import net.milkbowl.vault.economy.Economy;
-import net.minecraft.server.v1_6_R2.NBTBase;
-import net.minecraft.server.v1_6_R2.NBTTagCompound;
-import net.minecraft.server.v1_6_R2.NBTTagList;
-import net.minecraft.server.v1_6_R2.NBTTagString;
+import net.minecraft.server.v1_6_R3.NBTBase;
+import net.minecraft.server.v1_6_R3.NBTTagCompound;
+import net.minecraft.server.v1_6_R3.NBTTagList;
+import net.minecraft.server.v1_6_R3.NBTTagString;
 import net.skycraftmc.SignChestShop.Shop.ShopMode;
 import net.skycraftmc.SignChestShop.util.UpdateInformation;
 import net.skycraftmc.SignChestShop.util.Updater;
@@ -35,7 +35,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_6_R2.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_6_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -84,7 +84,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		String[] vercheck = getServer().getClass().getPackage().getName().split("[.]", 4);
 		if(vercheck.length == 4)
 		{
-			if(!vercheck[3].equals("v1_6_R2"))getLogger().warning(
+			if(!vercheck[3].equals("v1_6_R3"))getLogger().warning(
 					"This version of SignChestShop may not be compatible with this version of CraftBukkit.");
 		}
 		else getLogger().warning(
@@ -374,7 +374,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 						player.sendMessage(var(config.getString("message.sell.invalid", Messages.DEFAULT_SELL_INVALID), player));
 					return;
 				}
-				net.minecraft.server.v1_6_R2.ItemStack currentNMS = nmsStack(current.clone());
+				net.minecraft.server.v1_6_R3.ItemStack currentNMS = nmsStack(current.clone());
 				if(!currentNMS.getTag().hasKey("scs_price"))
 					return;
 				double price = currentNMS.getTag().getDouble("scs_price");
@@ -481,7 +481,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			{
 				if(!top || sclick)
 				{
-					net.minecraft.server.v1_6_R2.ItemStack nms = nmsStack(i);
+					net.minecraft.server.v1_6_R3.ItemStack nms = nmsStack(i);
 					stripSCSData(nms);
 					event.setCursor(CraftItemStack.asCraftMirror(nms));
 					final Player runnablePlayer = player;
@@ -509,24 +509,24 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 	}
 	
 	@SuppressWarnings("unused")
-	private boolean isSimilar(net.minecraft.server.v1_6_R2.ItemStack stack1, net.minecraft.server.v1_6_R2.ItemStack stack2)
+	private boolean isSimilar(net.minecraft.server.v1_6_R3.ItemStack stack1, net.minecraft.server.v1_6_R3.ItemStack stack2)
 	{
-		net.minecraft.server.v1_6_R2.ItemStack s1c = stack1.cloneItemStack();
-		net.minecraft.server.v1_6_R2.ItemStack s2c = stack2.cloneItemStack();
+		net.minecraft.server.v1_6_R3.ItemStack s1c = stack1.cloneItemStack();
+		net.minecraft.server.v1_6_R3.ItemStack s2c = stack2.cloneItemStack();
 		stripSCSData(s1c);
 		stripSCSData(s2c);
 		return CraftItemStack.asCraftMirror(s1c).isSimilar(CraftItemStack.asCraftMirror(s2c));
 	}
 	
-	private boolean isSimilarUnstripped(net.minecraft.server.v1_6_R2.ItemStack display, net.minecraft.server.v1_6_R2.ItemStack unstr)
+	private boolean isSimilarUnstripped(net.minecraft.server.v1_6_R3.ItemStack display, net.minecraft.server.v1_6_R3.ItemStack unstr)
 	{
-		net.minecraft.server.v1_6_R2.ItemStack s1c = display.cloneItemStack();
-		net.minecraft.server.v1_6_R2.ItemStack s2c = unstr.cloneItemStack();
+		net.minecraft.server.v1_6_R3.ItemStack s1c = display.cloneItemStack();
+		net.minecraft.server.v1_6_R3.ItemStack s2c = unstr.cloneItemStack();
 		stripSCSData(s1c);
 		return CraftItemStack.asCraftMirror(s1c).isSimilar(CraftItemStack.asCraftMirror(s2c));
 	}
 	
-	private void stripSCSData(net.minecraft.server.v1_6_R2.ItemStack nms)
+	private void stripSCSData(net.minecraft.server.v1_6_R3.ItemStack nms)
 	{
 		if(nms.tag == null)return;
 		nms.tag.remove("scs_price");
@@ -776,7 +776,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		return true;
 	}
 	
-	protected net.minecraft.server.v1_6_R2.ItemStack nmsStack(ItemStack i)
+	protected net.minecraft.server.v1_6_R3.ItemStack nmsStack(ItemStack i)
 	{
 		return CraftItemStack.asNMSCopy(i);
 	}
@@ -849,7 +849,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				ilist.add(null);
 				continue;
 			}
-			net.minecraft.server.v1_6_R2.ItemStack item = net.minecraft.server.v1_6_R2.ItemStack.createStack(c);
+			net.minecraft.server.v1_6_R3.ItemStack item = net.minecraft.server.v1_6_R3.ItemStack.createStack(c);
 			CraftItemStack cis = CraftItemStack.asCraftMirror(item);
 			if(displayprice)
 			{

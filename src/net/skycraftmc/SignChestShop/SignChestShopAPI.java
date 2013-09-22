@@ -1,7 +1,7 @@
 package net.skycraftmc.SignChestShop;
 
-import net.minecraft.server.v1_6_R2.NBTTagCompound;
-import net.minecraft.server.v1_6_R2.NBTTagList;
+import net.minecraft.server.v1_6_R3.NBTTagCompound;
+import net.minecraft.server.v1_6_R3.NBTTagList;
 import net.skycraftmc.SignChestShop.Shop.ShopMode;
 
 import org.bukkit.Location;
