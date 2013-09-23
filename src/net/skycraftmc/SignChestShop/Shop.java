@@ -232,7 +232,8 @@ public class Shop
 	{
 		int m = getMode().ID;
 		boolean b = m == 0;
-		Inventory i = SignChestShopPlugin.inst.getShop(data, true, (b ? "Buy" : "Sell"));
+		String ostring = getOwner() != null ? "from " + getOwner() : "";
+		Inventory i = SignChestShopPlugin.inst.getShop(data, true, (b ? "Buy" : "Sell") + ostring);
 		InventoryView iv = player.openInventory(i);
 		transactions.add(iv);
 		return iv;
@@ -262,7 +263,7 @@ public class Shop
 	}
 	
 	/**
-	 * @return The owner of this shop, or null if this is an admin shop.
+	 * @return The owner of this shop, or null if this shop has no owner.
 	 */
 	public String getOwner()
 	{

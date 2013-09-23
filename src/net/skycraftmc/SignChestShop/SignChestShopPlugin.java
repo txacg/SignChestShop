@@ -741,6 +741,25 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				else return msg(player, ChatColor.RED + "Acceptable modes: buy, sell");
 				player.sendMessage(ChatColor.GREEN + "Mode set to " + args[1]);
 			}
+			else if(args[0].equalsIgnoreCase("setowner"))
+			{
+				if(noPerm(sender, "scs.admin"))return true;
+				if(noConsole(sender))return true;
+				if(args.length != 2)return msg(sender, ChatColor.RED + "Usage: /scs setowner <name>");
+				Player player = (Player)sender;
+				Block b = player.getTargetBlock(null, 5);
+				if(b == null)return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+				Shop s = getShop(b);
+				if(s == null)
+					return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+				if(args[1].equalsIgnoreCase("none"))
+				{
+					s.setOwner(null);
+					return msg(sender, ChatColor.GREEN + "This shop no longer has an owner.");
+				}
+				s.setOwner(args[1]);
+				return msg(sender, ChatColor.GREEN + "The owner of this shop has been set to \"" + args[1] + "\"");
+			}
 			else if(args[0].equalsIgnoreCase("help"))helpCmd(sender, args);
 			else sender.sendMessage(ChatColor.GOLD + "Command unrecognized.  " +
 					"Type " + ChatColor.AQUA + "/scs help" + ChatColor.GOLD + " for help");
@@ -769,12 +788,13 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		msg(sender, def("/scs help", "Displays this menu"));
 		if(sender.hasPermission("scs.create"))
 		{
-			msg(sender, def("/scs create", "Creates a SignChestShop"));
-			msg(sender, def("/scs break", "Deletes a SignChestShop"));
-			msg(sender, def("/scs price <price>", "Prices a SignChestShop"));
-			msg(sender, def("/scs edit", "Edits a SignChestShop"));
-			msg(sender, def("/scs setmode <mode>", "Sets the mode of a SignChestShop"));
+			msg(sender, def("/scs create", "Creates a shop"));
+			msg(sender, def("/scs break", "Deletes a shop"));
+			msg(sender, def("/scs price <price>", "Prices items in a shop"));
+			msg(sender, def("/scs edit", "Edits a shop"));
+			msg(sender, def("/scs setmode <mode>", "Sets the mode of a shop"));
 		}
+		if(sender.hasPermission("scs.admin"))msg(sender, def("/scs setowner <name>", "Sets the owner of a shop"));
 		if(sender.hasPermission("scs.reload"))msg(sender, def("/scs reload", "Reloads the config"));
 		if(sender.hasPermission("scs.refresh"))msg(sender, def("/scs refresh", "Updates the config"));
 		return true;
@@ -982,7 +1002,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			config.insertComment("Message for an attempted breaking of a shop without the perm \"scs.create\"");
 			config.write("message.break.noperm", config.getString("message.beak.noperm", Messages.DEFAULT_BREAK_NOPERM));
 			config.writeLine();
-			config.insertComment("Buy message variables:");
+			config.insertComment("Buy/sell message variables:");
 			config.insertComment(" <amount>   - Amount of items bought");
 			config.insertComment(" <price>   - Price of items");
 			config.insertComment(" <rawprice>  - Price of items without the currency name");
@@ -991,13 +1011,21 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			config.writeLine();
 			config.insertComment("Message for buying an item successfully");
 			config.write("message.buy.success", config.getString("message.buy.success", Messages.DEFAULT_BUY_SUCCESS));
-			config.insertComment("Message for having not enough money while buying an item");
+			config.insertComment("Message for not having enough money while buying an item");
 			config.write("message.buy.fail", config.getString("message.buy.fail", Messages.DEFAULT_BUY_FAIL));
 			config.insertComment("Message for buying an item for free");
 			config.write("message.buy.free", config.getString("message.buy.free", Messages.DEFAULT_BUY_FREE));
 			config.insertComment("Message for doing an invalid action while shopping, ignores buy " +
 					"variables");
 			config.write("message.buy.invalid", config.getString("message.buy.invalid", Messages.DEFAULT_BUY_INVALID));
+			config.writeLine();
+			config.insertComment("Message for selling an item successfully");
+			config.write("message.sell.success", config.getString("message.sell.success", Messages.DEFAULT_SELL_SUCCESS));
+			config.insertComment("Message for the owner of the shop not having enough money to buy a sold item");
+			config.write("message.sell.fail", config.getString("message.sell.fail", Messages.DEFAULT_SELL_FAIL));
+			config.insertComment("Message for doing an invalid action while shopping, ignores sell " +
+					"variables");
+			config.write("message.sell.invalid", config.getString("message.sell.invalid", Messages.DEFAULT_SELL_INVALID));
 			config.writeLine();
 			config.insertComment("Message for not targeting a SignChestShop");
 			config.write("message.cmd.notarget", config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET));
