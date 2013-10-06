@@ -898,7 +898,10 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					else
 					{
 						String bmode = config.getString("buy.mode", "single");
-						if(bmode.equalsIgnoreCase("stack") || bmode.equalsIgnoreCase("amount"))price = rprice + " each";
+						if(bmode.equalsIgnoreCase("amount"))
+							price = (rprice*cis.getAmount()) + " total (" + rprice + " each)";
+						else if(bmode.equalsIgnoreCase("stack"))
+							price = rprice + " each; " + (rprice*cis.getType().getMaxStackSize()) + " per stack";
 						else price = "" + rprice;
 					}
 				}
