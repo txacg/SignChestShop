@@ -59,10 +59,6 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 	protected NBTTagCompound data;
 	protected ArrayList<Shop> shops = new ArrayList<Shop>();
 	private HashMap<InventoryView, Block>create = new HashMap<InventoryView, Block>();
-	private HashMap<InventoryView, DKey<Double, NBTTagCompound>>price = 
-			new HashMap<InventoryView, DKey<Double, NBTTagCompound>>();
-	private HashMap<InventoryView, NBTTagCompound>edit = 
-			new HashMap<InventoryView, NBTTagCompound>();
 	private Economy econ;
 	private Logger log;
 	private SignChestShopAPI api;
@@ -202,14 +198,14 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		for(Shop s: shops)
 		{
 			for(InventoryView i: s.transactions)i.close();
+			for(InventoryView i: s.edit)i.close();
+			for(InventoryView i: s.price.keySet())i.close();
 			s.transactions.clear();
+			s.edit.clear();
+			s.price.clear();
 		}
 		for(Map.Entry<InventoryView, Block>k:create.entrySet())k.getKey().close();
 		create.clear();
-		for(Map.Entry<InventoryView, DKey<Double, NBTTagCompound>> k:price.entrySet())k.getKey().close();
-		price.clear();
-		for(Map.Entry<InventoryView, NBTTagCompound> k:edit.entrySet())k.getKey().close();
-		edit.clear();
 		shops.clear();
 		initsuccess = false;
 	}
@@ -254,8 +250,8 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				shp = s;
 				s.transactions.remove(event.getView());
 			}
-			else if(price.containsKey(event.getView()))shp = s;
-			else if(edit.containsKey(event.getView()))shp = s;
+			else if(s.transactions.contains(event.getView()))shp = s;
+			else if(s.price.containsKey(event.getView()))shp = s;
 		}
 		if(!(event.getPlayer() instanceof Player))return;
 		Player player = (Player)event.getPlayer();
@@ -308,16 +304,16 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			create.remove(event.getView());
 		}
 		else if(shp == null)return;
-		else if(price.containsKey(event.getView()))
+		else if(shp.price.containsKey(event.getView()))
 		{
 			player.sendMessage(var(config.getString("message.price.cancel", Messages.DEFAULT_PRICE_CANCEL), player));
-			price.remove(event.getView());
+			shp.price.remove(event.getView());
 			shp.update();
 			return;
 		}
-		else if(edit.containsKey(event.getView()))
+		else if(shp.edit.contains(event.getView()))
 		{
-			NBTTagCompound shop = edit.get(event.getView());
+			NBTTagCompound shop = shp.data;
 			NBTTagList items = new NBTTagList();
 			Inventory inv = event.getView().getTopInventory();
 			for(ItemStack i:inv.getContents())
@@ -332,7 +328,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			}
 			shop.set("items", items);
 			player.sendMessage(var(config.getString("message.edit", Messages.DEFAULT_EDIT), player));
-			edit.remove(event.getView());
+			shp.edit.remove(event.getView());
 			shp.update();
 		}
 	}
@@ -348,14 +344,14 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		boolean transaction = false;
 		for(Shop s: shops)
 		{
+			if(shop != null)break;
 			if(s.transactions.contains(event.getView()))
 			{
 				shop = s;
 				transaction = true;
-				break;
 			}
-			else if(price.containsKey(event.getView()))shop = s;
-			else if(edit.containsKey(event.getView()))shop = s;
+			else if(s.edit.contains(event.getView()))shop = s;
+			else if(s.price.containsKey(event.getView()))shop = s;
 		}
 		if(shop == null)return;
 		if(transaction)
@@ -466,11 +462,10 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				event.setCancelled(true);
 			}
 		}
-		else if(price.containsKey(event.getView()) && event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR)
+		else if(shop.price.containsKey(event.getView()) && event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR)
 		{
-			DKey<Double, NBTTagCompound> dkey = price.get(event.getView());
-			double p = dkey.getKey();
-			price.remove(event.getView());
+			double p = shop.price.get(event.getView());
+			shop.price.remove(event.getView());
 			if(!top)
 			{
 				player.sendMessage(var(config.getString("message.price.cancel", Messages.DEFAULT_PRICE_CANCEL), player));
@@ -483,7 +478,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			event.getView().close();
 			player.sendMessage(var(config.getString("message.price.set", Messages.DEFAULT_PRICE_SET), player));
 		}
-		else if(edit.containsKey(event.getView()))
+		else if(shop.edit.contains(event.getView()))
 		{
 			boolean sclick = top && event.isShiftClick();
 			ItemStack i = player.getItemOnCursor().clone();
@@ -686,8 +681,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					}
 				}
 				Inventory i = getShop(s, true, "Price");
-				this.price.put(player.openInventory(i), 
-						new DKey<Double, NBTTagCompound>(price, s));
+				getShop(b).price.put(player.openInventory(i), price);
 			}
 			else if(args[0].equalsIgnoreCase("edit"))
 			{
@@ -700,7 +694,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				if(s == null)
 					return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
 				Inventory i = getShop(s, false, "Edit");
-				edit.put(player.openInventory(i), s);
+				getShop(b).edit.add(player.openInventory(i));
 			}
 			else if(args[0].equalsIgnoreCase("reload"))
 			{

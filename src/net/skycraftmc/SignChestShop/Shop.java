@@ -1,6 +1,7 @@
 package net.skycraftmc.SignChestShop;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import net.minecraft.server.v1_6_R3.NBTBase;
 import net.minecraft.server.v1_6_R3.NBTTagCompound;
@@ -27,6 +28,8 @@ public class Shop
 {
 	NBTTagCompound data;
 	ArrayList<InventoryView> transactions = new ArrayList<InventoryView>();
+	HashMap<InventoryView, Double>price = new HashMap<InventoryView, Double>();
+	ArrayList<InventoryView>edit = new ArrayList<InventoryView>();
 	Shop(NBTTagCompound data)
 	{
 		if(!data.hasKey("x") || !data.hasKey("y") || !data.hasKey("z") || !data.hasKey("world") ||
@@ -232,7 +235,7 @@ public class Shop
 	{
 		int m = getMode().ID;
 		boolean b = m == 0;
-		String ostring = getOwner() != null ? "from " + getOwner() : "";
+		String ostring = getOwner() != null ? " " + (b ? "from" : "to") + " " + getOwner() : "";
 		Inventory i = SignChestShopPlugin.inst.getShop(data, true, (b ? "Buy" : "Sell") + ostring);
 		InventoryView iv = player.openInventory(i);
 		transactions.add(iv);
