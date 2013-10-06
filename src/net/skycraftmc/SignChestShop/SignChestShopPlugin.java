@@ -252,6 +252,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			}
 			else if(s.transactions.contains(event.getView()))shp = s;
 			else if(s.price.containsKey(event.getView()))shp = s;
+			else if(s.edit.contains(event.getView()))shp = s;
 		}
 		if(!(event.getPlayer() instanceof Player))return;
 		Player player = (Player)event.getPlayer();
