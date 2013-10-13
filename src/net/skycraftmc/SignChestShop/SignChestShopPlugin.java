@@ -900,10 +900,10 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					{
 						String bmode = config.getString("buy.mode", "single");
 						if(bmode.equalsIgnoreCase("amount"))
-							price = (rprice*cis.getAmount()) + " total (" + rprice + " each)";
+							price = placePadding(rprice*cis.getAmount()) + " total (" + placePadding(rprice) + " each)";
 						else if(bmode.equalsIgnoreCase("stack"))
-							price = rprice + " each; " + (rprice*cis.getType().getMaxStackSize()) + " per stack";
-						else price = "" + rprice;
+							price = placePadding(rprice) + " each; " + placePadding(rprice*cis.getType().getMaxStackSize()) + " per stack";
+						else price = placePadding(rprice);
 					}
 				}
 				lore.add(new NBTTagString("", ChatColor.AQUA + "Price: " + ChatColor.GOLD + price));
@@ -918,6 +918,21 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			i.setItem(a, ilist.get(a));
 		}
 		return i;
+	}
+	
+	private String placePadding(double price)
+	{
+		String pstring = Double.toString(price);
+		int places = pstring.length() - pstring.indexOf('.') - 1;
+		int min = config.getInt("shop.mindecplaces", Options.DEFAULT_SHOP_MINDECPLACES);
+		if(places < min)
+		{
+			StringBuffer sb = new StringBuffer().append(pstring);
+			for(int j = places; j < min; j ++)
+				sb.append(0);
+			pstring = sb.toString();
+		}
+		return pstring;
 	}
 	
 	protected Inventory getShop(NBTTagCompound shop, boolean buy)
@@ -955,6 +970,8 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			config.writeLine();
 			config.insertComment("Enable this to force signs to be empty on creation");
 			config.writeKey("shop.forceempty", Options.DEFAULT_SHOP_FORCEEMPTY);
+			config.insertComment("Minimum decimal places to display for prices");
+			config.writeKey("shop.mindecplaces", Options.DEFAULT_SHOP_MINDECPLACES);
 			config.writeLine();
 			config.insertComment("---- Buying Options ----#");
 			config.writeLine();

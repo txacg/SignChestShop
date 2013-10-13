@@ -167,6 +167,11 @@ public class StringConfig
 	}
 	public void writeKey(String k, boolean def) 
 	{
-		writeKey(k, "" + def);
+		writeKey(k, Boolean.toString(def));
+	}
+	
+	public void writeKey(String k, int def)
+	{
+		writeKey(k, Integer.toString(def));
 	}
 }
