@@ -45,6 +45,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
@@ -200,9 +201,11 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			for(InventoryView i: s.transactions)i.close();
 			for(InventoryView i: s.edit)i.close();
 			for(InventoryView i: s.price.keySet())i.close();
+			for(InventoryView i: s.storage)i.close();
 			s.transactions.clear();
 			s.edit.clear();
 			s.price.clear();
+			s.storage.clear();
 		}
 		for(Map.Entry<InventoryView, Block>k:create.entrySet())k.getKey().close();
 		create.clear();
@@ -253,6 +256,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			else if(s.transactions.contains(event.getView()))shp = s;
 			else if(s.price.containsKey(event.getView()))shp = s;
 			else if(s.edit.contains(event.getView()))shp = s;
+			else if(s.storage.contains(event.getView()))shp = s;
 		}
 		if(!(event.getPlayer() instanceof Player))return;
 		Player player = (Player)event.getPlayer();
@@ -331,6 +335,11 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			player.sendMessage(var(config.getString("message.edit", Messages.DEFAULT_EDIT), player));
 			shp.edit.remove(event.getView());
 			shp.update();
+		}
+		else if(shp.storage.contains(event.getView()))
+		{
+			Inventory inv = event.getView().getTopInventory();
+			shp.setStorage(inv.getContents());
 		}
 	}
 	@EventHandler
@@ -736,6 +745,23 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				else return msg(player, ChatColor.RED + "Acceptable modes: buy, sell");
 				player.sendMessage(ChatColor.GREEN + "Mode set to " + args[1]);
 			}
+			else if(args[0].equalsIgnoreCase("storage"))
+			{
+				if(noPerm(sender, "scs.create"))return true;
+				if(noConsole(sender))return true;
+				if(args.length != 1)return msg(sender, ChatColor.RED + "Usage: /scs storage");
+				Player player = (Player)sender;
+				Block b = player.getTargetBlock(null, 5);
+				if(b == null)return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+				Shop s = getShop(b);
+				if(s == null)
+					return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+				if(!player.hasPermission("scs.storage.bypass") && !player.getName().equals(s.getOwner()))
+					return msg(sender, var(config.getString("message.cmd.notowned", Messages.DEFAULT_CMD_NOTOWNED), player));
+				Inventory inv = getServer().createInventory(null, 27, "Shop Storage");
+				inv.setContents(s.getStorage());
+				s.storage.add(player.openInventory(inv));
+			}
 			else if(args[0].equalsIgnoreCase("setowner"))
 			{
 				if(noPerm(sender, "scs.admin"))return true;
@@ -788,6 +814,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			msg(sender, def("/scs price <price>", "Prices items in a shop"));
 			msg(sender, def("/scs edit", "Edits a shop"));
 			msg(sender, def("/scs setmode <mode>", "Sets the mode of a shop"));
+			msg(sender, def("/scs storage", "Accesses a shop's storage"));
 		}
 		if(sender.hasPermission("scs.admin"))msg(sender, def("/scs setowner <name>", "Sets the owner of a shop"));
 		if(sender.hasPermission("scs.reload"))msg(sender, def("/scs reload", "Reloads the config"));
@@ -1046,6 +1073,8 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			config.write("message.cmd.notarget", config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET));
 			config.insertComment("Message for not having the permissions");
 			config.write("message.cmd.noperm", config.getString("message.cmd.noperm", Messages.DEFAULT_CMD_NOPERM));
+			config.insertComment("Message for attempting to use owner commands on a shop not owned by the player");
+			config.write("message.cmd.notowned", config.getString("message.cmd.notowned", Messages.DEFAULT_CMD_NOTOWNED));
 			config.writeLine();
 			config.insertComment("---- Logging Options ----#");
 			config.writeLine();
@@ -1093,6 +1122,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			NBTTagCompound a = (NBTTagCompound)shops.get(i);
 			if(!a.hasKey("limited"))a.setBoolean("limited", false);
 			if(!a.hasKey("mode"))a.setInt("mode", ShopMode.BUY.ID);
+			if(!a.hasKey("storage"))a.set("storage", new NBTTagList());
 		}
 	}
 	

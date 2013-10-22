@@ -28,4 +28,5 @@ public class Messages
 	
 	public static final String DEFAULT_CMD_NOTARGET = "&cYou must target a SignChestShop!";
 	public static final String DEFAULT_CMD_NOPERM = "&cYou are not allowed to use this command!";
+	public static final String DEFAULT_CMD_NOTOWNED = "&cYou do not own this shop!";
 }

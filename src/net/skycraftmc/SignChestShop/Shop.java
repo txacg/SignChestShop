@@ -18,18 +18,14 @@ import org.bukkit.inventory.ItemStack;
 
 /**
  * Represents a SignChestShop.
- * These objects are not stored in main
- * plugin, so use SignChestShopAPI.getShop(Block b) or
- * SignChestShopAPI.getShop(Location l) to retrieve them.
- * @see SignChestShopAPI#getShop(Location)
- * @see SignChestShopAPI#getShop(Block)
  */
 public class Shop 
 {
 	NBTTagCompound data;
 	ArrayList<InventoryView> transactions = new ArrayList<InventoryView>();
 	HashMap<InventoryView, Double>price = new HashMap<InventoryView, Double>();
-	ArrayList<InventoryView>edit = new ArrayList<InventoryView>();
+	ArrayList<InventoryView> edit = new ArrayList<InventoryView>();
+	ArrayList<InventoryView> storage = new ArrayList<InventoryView>();
 	Shop(NBTTagCompound data)
 	{
 		if(!data.hasKey("x") || !data.hasKey("y") || !data.hasKey("z") || !data.hasKey("world") ||
@@ -301,6 +297,37 @@ public class Shop
 	public boolean isLimited()
 	{
 		return data.getBoolean("limited");
+	}
+	
+	/**
+	 * @return The contents of the shop's storage.
+	 */
+	public ItemStack[] getStorage()
+	{
+		NBTTagList ilist = data.getList("storage");
+		if(ilist.size() == 0)
+			return new ItemStack[0];
+		ItemStack[] i = new ItemStack[ilist.size()];
+		for(int a = 0; a < ilist.size(); a ++)
+		{
+			NBTTagCompound c = (NBTTagCompound) ilist.get(a);
+			if(c.c().size() == 0)i[a] = null;
+			else i[a] = CraftItemStack.asCraftMirror((net.minecraft.server.v1_6_R3.ItemStack.createStack(c)));
+		}
+		return i;
+	}
+	
+	/**
+	 * Sets the contents of the shop's storage
+	 */
+	public void setStorage(ItemStack[] storage)
+	{
+		NBTTagList list = new NBTTagList();
+		for(ItemStack i: storage)
+		{
+			list.add(i == null ? new NBTTagCompound() : CraftItemStack.asNMSCopy(i).save(new NBTTagCompound()));
+		}
+		data.set("storage", list);
 	}
 
 	/**
