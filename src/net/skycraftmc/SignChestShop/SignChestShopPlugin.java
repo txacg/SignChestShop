@@ -43,9 +43,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
@@ -475,7 +475,6 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		else if(shop.price.containsKey(event.getView()) && event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR)
 		{
 			double p = shop.price.get(event.getView());
-			shop.price.remove(event.getView());
 			if(!top)
 			{
 				player.sendMessage(var(config.getString("message.price.cancel", Messages.DEFAULT_PRICE_CANCEL), player));
@@ -485,7 +484,11 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			}
 			event.setCancelled(true);
 			shop.setPrice(event.getSlot(), p);
-			event.getView().close();
+			if(event.getAction() == InventoryAction.PICKUP_ALL)
+			{
+				shop.price.remove(event.getView());
+				event.getView().close();
+			}
 			player.sendMessage(var(config.getString("message.price.set", Messages.DEFAULT_PRICE_SET), player));
 		}
 		else if(shop.edit.contains(event.getView()))
