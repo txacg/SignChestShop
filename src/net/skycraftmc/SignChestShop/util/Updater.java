@@ -1,56 +1,33 @@
 package net.skycraftmc.SignChestShop.util;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
+import java.net.URLConnection;
 
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.events.XMLEvent;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 
 public class Updater
 {
-	public static UpdateInformation findUpdate()throws IOException, XMLStreamException
+	public static UpdateInformation findUpdate(String version) 
+			throws IOException, XMLStreamException
 	{
-		URL result = null;
-		URL filerss = new URL("http://dev.bukkit.org/server-mods/signchestshop/files.rss");
-		InputStream in = filerss.openStream();
-		XMLEventReader reader = 
-				XMLInputFactory.newInstance().createXMLEventReader(in);
-		String title = null;
-		String link = null;
-		String desc = null;
-		boolean i = false;
-		while(reader.hasNext())
+		URL link = new URL("https://api.curseforge.com/servermods/files?projectIds=47097");
+		URLConnection c = link.openConnection();
+		c.addRequestProperty("User-Agent", "SignChestShop version " + version + " (by Technius)");
+		BufferedReader br = new BufferedReader(new InputStreamReader(c.getInputStream()));
+		String s = br.readLine();
+		JSONArray jsa = (JSONArray) JSONValue.parse(s);
+		if(jsa.size() > 0)
 		{
-			XMLEvent event = reader.nextEvent();
-			if(!event.isStartElement())continue;
-			String l = event.asStartElement().getName().getLocalPart();
-			if(l.equals("item"))i = true;
-			if(!i)continue;
-			if(l.equals("title"))title = reader.nextEvent().asCharacters().getData();
-			else if(l.equals("link"))
-				link = reader.nextEvent().asCharacters().getData();
-			else if(l.equals("description"))
-			{
-				desc = "";
-				XMLEvent ev;
-				for(;;)
-				{
-					ev = reader.nextEvent();
-					if(ev.isEndElement())
-					{
-						if(ev.asEndElement().getName().getLocalPart().equals("description"))
-							break;
-					}
-					desc = desc + ev.asCharacters().getData();
-				}
-			}
-			if(title != null && link != null && desc != null)break;
+			JSONObject jso = (JSONObject) jsa.get(jsa.size() - 1);
+			return new UpdateInformation((String) jso.get("name"), (String) jso.get("releaseType"));
 		}
-		in.close();
-		result = new URL(link);
-		return new UpdateInformation(title, result, desc);
+		return null;
 	}
 }

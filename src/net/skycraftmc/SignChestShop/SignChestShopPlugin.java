@@ -145,11 +145,11 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				public void run()
 				{
 					try {
-						UpdateInformation info = Updater.findUpdate();
+						UpdateInformation info = Updater.findUpdate(getDescription().getVersion());
 						if(info != null)
 						{
 							if(!("v" + getDescription().getVersion()).equals(info.getVersion()))
-								getLogger().info("New update available: " + info.getVersion());
+								getLogger().info("A new update is available: " + info.getVersion() + " (" + info.getType() + ")");
 						}
 					} catch (IOException e) {
 						getLogger().warning("Failed to find update: " + e);
