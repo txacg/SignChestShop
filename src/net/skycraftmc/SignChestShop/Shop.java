@@ -158,8 +158,7 @@ public class Shop
 		NBTTagCompound old = (NBTTagCompound) ilist.get(index);
 		if(item == null)
 		{
-			for(Object o:old.c())
-				old.remove(((NBTBase)o).getName());
+			old.c().clear();
 			return;
 		}
 		net.minecraft.server.v1_6_R3.ItemStack nms = CraftItemStack.asNMSCopy(item);

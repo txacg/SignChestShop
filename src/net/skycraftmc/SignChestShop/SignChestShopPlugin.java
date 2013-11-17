@@ -408,9 +408,11 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					int amount = 1;
 					String buymode = config.getString("buy.mode", "single");
 					if(buymode.equalsIgnoreCase("stack") || 
-							(event.isShiftClick() && config.getBoolean("buy.shiftclick", true)))amount = a;
+							(event.isShiftClick() && config.getBoolean("buy.shiftclick", true)))amount = shop.isLimited() ? current.getAmount() : a;
 					else if(buymode.equalsIgnoreCase("amount"))amount = current.getAmount();
 					else amount = 1;
+					if(event.getAction() == InventoryAction.PICKUP_HALF || event.getAction() == InventoryAction.PICKUP_ONE)
+						amount = 1;
 					int iamount = player.getItemOnCursor().getAmount();
 					if(amount + iamount > a)amount = a - iamount;
 					price = price*amount;
@@ -434,6 +436,21 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					player.setItemOnCursor(n);
 					if(shop.getOwner() != null)
 						econ.depositPlayer(shop.getOwner(), price);
+					if(shop.isLimited())
+					{
+						if(current.getAmount() == n.getAmount())
+						{
+							shop.setItem(event.getRawSlot(), null);
+							event.getView().getTopInventory().setItem(event.getRawSlot(), null);
+						}
+						else 
+						{
+							ItemStack sn = current.clone();
+							sn.setAmount(current.getAmount() - n.getAmount());
+							shop.setItem(event.getRawSlot(), sn, true);
+							event.getView().getTopInventory().setItem(event.getRawSlot(), sn);
+						}
+					}
 				}
 				else if(shop.getMode() == ShopMode.SELL)
 				{
@@ -784,6 +801,21 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				s.setOwner(args[1]);
 				return msg(sender, ChatColor.GREEN + "The owner of this shop has been set to \"" + args[1] + "\"");
 			}
+			else if(args[0].equalsIgnoreCase("setlimited"))
+			{
+				if(noPerm(sender, "scs.admin"))return true;
+				if(noConsole(sender))return true;
+				if(args.length != 2)return msg(sender, ChatColor.RED + "Usage: /scs setowner <name>");
+				Player player = (Player)sender;
+				Block b = player.getTargetBlock(null, 5);
+				if(b == null)return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+				Shop s = getShop(b);
+				if(s == null)
+					return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+				boolean l = args[1].equalsIgnoreCase("true");
+				s.setLimited(l);
+				return msg(sender, ChatColor.GREEN + "This shop is now " + (l ? "" : "un") + "limited.");
+			}
 			else if(args[0].equalsIgnoreCase("help"))helpCmd(sender, args);
 			else sender.sendMessage(ChatColor.GOLD + "Command unrecognized.  " +
 					"Type " + ChatColor.AQUA + "/scs help" + ChatColor.GOLD + " for help");
@@ -819,7 +851,11 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			msg(sender, def("/scs setmode <mode>", "Sets the mode of a shop"));
 			msg(sender, def("/scs storage", "Accesses a shop's storage"));
 		}
-		if(sender.hasPermission("scs.admin"))msg(sender, def("/scs setowner <name>", "Sets the owner of a shop"));
+		if(sender.hasPermission("scs.admin"))
+		{
+			msg(sender, def("/scs setowner <name>", "Sets the owner of a shop"));
+			msg(sender, def("/scs setavailibility <true/false>", "Sets shop item availability"));
+		}
 		if(sender.hasPermission("scs.reload"))msg(sender, def("/scs reload", "Reloads the config"));
 		if(sender.hasPermission("scs.refresh"))msg(sender, def("/scs refresh", "Updates the config"));
 		return true;
