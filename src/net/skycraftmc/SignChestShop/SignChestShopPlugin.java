@@ -751,31 +751,20 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			}
 			else if(args[0].equalsIgnoreCase("setmode"))
 			{
-				if(noPerm(sender, "scs.create"))return true;
-				if(noConsole(sender))return true;
-				if(args.length != 2)return msg(sender, ChatColor.RED + "Usage: /scs setmode <mode>");
-				Player player = (Player)sender;
-				Block b = player.getTargetBlock(null, 5);
-				if(b == null)return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
-				Shop s = getShop(b);
+				Shop s = checkTarget(sender, "scs.create", 2, 2, args.length, "scs setmode <mode>");
 				if(s == null)
-					return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+					return true;
 				if(args[1].equalsIgnoreCase("buy"))s.setMode(ShopMode.BUY);
 				else if(args[1].equalsIgnoreCase("sell"))s.setMode(ShopMode.SELL);
-				else return msg(player, ChatColor.RED + "Acceptable modes: buy, sell");
-				player.sendMessage(ChatColor.GREEN + "Mode set to " + args[1]);
+				else return msg(sender, ChatColor.RED + "Acceptable modes: buy, sell");
+				sender.sendMessage(ChatColor.GREEN + "Mode set to " + args[1]);
 			}
 			else if(args[0].equalsIgnoreCase("storage"))
 			{
-				if(noPerm(sender, "scs.create"))return true;
-				if(noConsole(sender))return true;
-				if(args.length != 1)return msg(sender, ChatColor.RED + "Usage: /scs storage");
-				Player player = (Player)sender;
-				Block b = player.getTargetBlock(null, 5);
-				if(b == null)return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
-				Shop s = getShop(b);
+				Shop s = checkTarget(sender, "scs.create", 1, 1, args.length, "scs storage");
 				if(s == null)
-					return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+					return true;
+				Player player = (Player) sender;
 				if(!player.hasPermission("scs.storage.bypass") && !player.getName().equals(s.getOwner()))
 					return msg(sender, var(config.getString("message.cmd.notowned", Messages.DEFAULT_CMD_NOTOWNED), player));
 				Inventory inv = getServer().createInventory(null, 27, "Shop Storage");
@@ -784,15 +773,9 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			}
 			else if(args[0].equalsIgnoreCase("setowner"))
 			{
-				if(noPerm(sender, "scs.admin"))return true;
-				if(noConsole(sender))return true;
-				if(args.length != 2)return msg(sender, ChatColor.RED + "Usage: /scs setowner <name>");
-				Player player = (Player)sender;
-				Block b = player.getTargetBlock(null, 5);
-				if(b == null)return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
-				Shop s = getShop(b);
+				Shop s = checkTarget(sender, "scs.admin", 2, 2, args.length, "scs setowner <name>");
 				if(s == null)
-					return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+					return true;
 				if(args[1].equalsIgnoreCase("none"))
 				{
 					s.setOwner(null);
@@ -803,15 +786,9 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			}
 			else if(args[0].equalsIgnoreCase("setlimited"))
 			{
-				if(noPerm(sender, "scs.admin"))return true;
-				if(noConsole(sender))return true;
-				if(args.length != 2)return msg(sender, ChatColor.RED + "Usage: /scs setowner <name>");
-				Player player = (Player)sender;
-				Block b = player.getTargetBlock(null, 5);
-				if(b == null)return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
-				Shop s = getShop(b);
+				Shop s = checkTarget(sender, "scs.admin", 2, 2, args.length, "scs setlimited <true/false>");
 				if(s == null)
-					return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+					return true;
 				boolean l = args[1].equalsIgnoreCase("true");
 				s.setLimited(l);
 				return msg(sender, ChatColor.GREEN + "This shop is now " + (l ? "" : "un") + "limited.");
@@ -827,6 +804,29 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			sender.sendMessage("Type " + ChatColor.AQUA + "/scs help" + ChatColor.GOLD + " for help");
 		}
 		return true;
+	}
+	private Shop checkTarget(CommandSender sender, String perm, int argmin, int argmax, int argc, String usage)
+	{
+		//TODO Find alternative to getTargetBlock
+		if(noPerm(sender, "scs.admin"))return null;
+		if(noConsole(sender))return null;
+		if(argc < argmin || argc > argmax)
+		{
+			msg(sender, ChatColor.RED + "Usage: /" + usage);
+			return null;
+		}
+		Player player = (Player)sender;
+		@SuppressWarnings("deprecation")
+		Block b = player.getTargetBlock(null, 5);
+		if(b == null)
+		{
+			msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+			return null;
+		}
+		Shop s = getShop(b);
+		if(s == null)
+			msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+		return s;
 	}
 	private boolean noConsole(CommandSender sender)
 	{
