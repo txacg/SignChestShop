@@ -11,6 +11,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -50,6 +51,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.material.MaterialData;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -438,17 +440,18 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 						econ.depositPlayer(shop.getOwner(), price);
 					if(shop.isLimited())
 					{
-						if(current.getAmount() == n.getAmount())
+						if(current.getAmount() == amount)
 						{
 							shop.setItem(event.getRawSlot(), null);
 							event.getView().getTopInventory().setItem(event.getRawSlot(), null);
 						}
 						else 
 						{
-							ItemStack sn = current.clone();
-							sn.setAmount(current.getAmount() - n.getAmount());
+							net.minecraft.server.v1_6_R3.ItemStack sn = nmsStack(current);
+							sn.count = current.getAmount() - amount;
+							event.getView().getTopInventory().setItem(event.getRawSlot(), CraftItemStack.asCraftMirror(sn));
+							removeLastLore(sn);
 							shop.setItem(event.getRawSlot(), sn, true);
-							event.getView().getTopInventory().setItem(event.getRawSlot(), sn);
 						}
 					}
 				}
@@ -468,15 +471,35 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 						}
 						econ.withdrawPlayer(shop.getOwner(), price);
 					}
+					//TODO Check storage space
 					if(price != 0)econ.depositPlayer(player.getName(), price);
 					player.sendMessage(varTrans(config.getString("message.sell.success", 
 							Messages.DEFAULT_SELL_SUCCESS), player, shop, amount, price + curname, price));
-					if(cursor.getAmount() - amount <= 0)player.setItemOnCursor(null);
+					//TODO Add items to shop storage
+					if(amount < current.getAmount())
+					{
+						ItemStack n = cursor.clone();
+						n.setAmount(n.getAmount() - amount);
+						player.setItemOnCursor(n.getAmount() == 0 ? null : n);
+						if(shop.isLimited())
+						{
+							net.minecraft.server.v1_6_R3.ItemStack sn = currentNMS.cloneItemStack();
+							sn.count = current.getAmount() - amount;
+							event.getView().getTopInventory().setItem(event.getRawSlot(), CraftItemStack.asCraftMirror(sn));
+							removeLastLore(sn);
+							shop.setItem(event.getRawSlot(), sn, true);
+						}
+					}
 					else
 					{
 						ItemStack n = cursor.clone();
 						n.setAmount(n.getAmount() - amount);
-						player.setItemOnCursor(n);
+						player.setItemOnCursor(n.getAmount() == 0 ? null : n);
+						if(shop.isLimited())
+						{
+							shop.setItem(event.getRawSlot(), null);
+							event.getView().getTopInventory().setItem(event.getRawSlot(), null);
+						}
 					}
 				}
 			}
@@ -544,6 +567,16 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		return newlore;
 	}
 	
+	private void removeLastLore(net.minecraft.server.v1_6_R3.ItemStack item)
+	{
+		NBTTagCompound display = item.tag.getCompound("display");
+		NBTTagList lore = display.getList("Lore");
+		if(lore.size() == 1)display.remove("Lore");
+		else display.set("Lore", removeLastLore(lore));
+		if(display.c().size() == 0)item.tag.remove("display");
+		if(item.tag.c().size() == 0)item.setTag(null);
+	}
+	
 	@SuppressWarnings("unused")
 	private boolean isSimilar(net.minecraft.server.v1_6_R3.ItemStack stack1, net.minecraft.server.v1_6_R3.ItemStack stack2)
 	{
@@ -564,14 +597,14 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 	
 	private void stripSCSData(net.minecraft.server.v1_6_R3.ItemStack nms)
 	{
+		stripSCSData(nms, true);
+	}
+	
+	private void stripSCSData(net.minecraft.server.v1_6_R3.ItemStack nms, boolean lastlore)
+	{
 		if(nms.tag == null)return;
 		nms.tag.remove("scs_price");
-		NBTTagCompound display = nms.tag.getCompound("display");
-		NBTTagList lore = display.getList("Lore");
-		if(lore.size() == 1)display.remove("Lore");
-		else display.set("Lore", removeLastLore(lore));
-		if(display.c().size() == 0)nms.tag.remove("display");
-		if(nms.tag.c().size() == 0)nms.setTag(null);
+		if(lastlore)removeLastLore(nms);
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

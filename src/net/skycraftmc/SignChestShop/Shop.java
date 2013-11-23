@@ -152,6 +152,11 @@ public class Shop
 	 */
 	public void setItem(int index, ItemStack item, boolean retainPrice)
 	{
+		setItem(index, CraftItemStack.asNMSCopy(item), retainPrice);
+	}
+	
+	protected void setItem(int index, net.minecraft.server.v1_6_R3.ItemStack item, boolean retainPrice)
+	{
 		NBTTagList ilist = data.getList("items");
 		if(index >= ilist.size() || index < 0)
 			throw new ArrayIndexOutOfBoundsException(index);
@@ -161,7 +166,11 @@ public class Shop
 			old.c().clear();
 			return;
 		}
-		net.minecraft.server.v1_6_R3.ItemStack nms = CraftItemStack.asNMSCopy(item);
+		setItem(old, item, retainPrice);
+	}
+	
+	protected void setItem(NBTTagCompound old, net.minecraft.server.v1_6_R3.ItemStack nms, boolean retainPrice)
+	{
 		NBTTagCompound c = new NBTTagCompound();
 		nms.save(c);
 		for(Object o:c.c())
