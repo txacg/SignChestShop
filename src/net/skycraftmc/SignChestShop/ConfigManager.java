@@ -120,7 +120,9 @@ public class ConfigManager
 			config.insertComment("Message for selling an item to an named and owned shop successfully");
 			config.writeKey("message.sell.success.titledowned", Messages.DEFAULT_SELL_SUCCESS_TITLED_OWNED);
 			config.insertComment("Message for the owner of the shop not having enough money to buy a sold item");
-			config.write("message.sell.fail", config.getString("message.sell.fail", Messages.DEFAULT_SELL_FAIL));
+			config.writeKey("message.sell.fail", Messages.DEFAULT_SELL_FAIL);
+			config.insertComment("Message for a limited shop's storage not having enough space to buy an item from a player");
+			config.writeKey("message.sell.nospace", Messages.DEFAULT_SELL_NOSPACE);
 			config.insertComment("Message for doing an invalid action while shopping, ignores sell " +
 					"variables");
 			config.write("message.sell.invalid", config.getString("message.sell.invalid", Messages.DEFAULT_SELL_INVALID));

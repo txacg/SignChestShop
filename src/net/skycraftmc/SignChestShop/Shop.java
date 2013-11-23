@@ -10,6 +10,7 @@ import net.minecraft.server.v1_6_R3.NBTTagList;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
+import org.bukkit.craftbukkit.v1_6_R3.inventory.CraftInventoryCustom;
 import org.bukkit.craftbukkit.v1_6_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -26,12 +27,14 @@ public class Shop
 	HashMap<InventoryView, Double>price = new HashMap<InventoryView, Double>();
 	ArrayList<InventoryView> edit = new ArrayList<InventoryView>();
 	ArrayList<InventoryView> storage = new ArrayList<InventoryView>();
+	Inventory storageinv;
 	Shop(NBTTagCompound data)
 	{
 		if(!data.hasKey("x") || !data.hasKey("y") || !data.hasKey("z") || !data.hasKey("world") ||
 				!data.hasKey("items"))
 			throw new IllegalArgumentException("Invalid shop data");
 		this.data = data;
+		storageinv = new CraftInventoryCustom(null, 27, "Storage");
 	}
 	
 	/**
@@ -213,6 +216,26 @@ public class Shop
 		return data;
 	}
 	
+	protected void loadData()
+	{
+		NBTTagList l = data.getList("storage");
+		for(int i = 0; i < l.size(); i ++)
+		{
+			storageinv.setItem(i, CraftItemStack.asCraftMirror(
+					net.minecraft.server.v1_6_R3.ItemStack.createStack((NBTTagCompound) l.get(i))));
+		}
+	}
+	
+	protected void finishData()
+	{
+		NBTTagList list = new NBTTagList();
+		for(ItemStack i: storageinv.getContents())
+		{
+			list.add(i == null ? new NBTTagCompound() : CraftItemStack.asNMSCopy(i).save(new NBTTagCompound()));
+		}
+		data.set("storage", list);
+	}
+	
 	/**
 	 * @return The mode of the shop, such as BUY or SELL
 	 */
@@ -338,32 +361,9 @@ public class Shop
 	/**
 	 * @return The contents of the shop's storage.
 	 */
-	public ItemStack[] getStorage()
+	public Inventory getStorage()
 	{
-		NBTTagList ilist = data.getList("storage");
-		if(ilist.size() == 0)
-			return new ItemStack[0];
-		ItemStack[] i = new ItemStack[ilist.size()];
-		for(int a = 0; a < ilist.size(); a ++)
-		{
-			NBTTagCompound c = (NBTTagCompound) ilist.get(a);
-			if(c.c().size() == 0)i[a] = null;
-			else i[a] = CraftItemStack.asCraftMirror((net.minecraft.server.v1_6_R3.ItemStack.createStack(c)));
-		}
-		return i;
-	}
-	
-	/**
-	 * Sets the contents of the shop's storage
-	 */
-	public void setStorage(ItemStack[] storage)
-	{
-		NBTTagList list = new NBTTagList();
-		for(ItemStack i: storage)
-		{
-			list.add(i == null ? new NBTTagCompound() : CraftItemStack.asNMSCopy(i).save(new NBTTagCompound()));
-		}
-		data.set("storage", list);
+		return storageinv;
 	}
 
 	/**

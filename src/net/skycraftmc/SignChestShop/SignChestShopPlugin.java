@@ -11,7 +11,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -51,7 +50,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.material.MaterialData;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -176,6 +174,21 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 	{
 		File f = getDataFolder();
 		if(!f.exists())f.mkdir();
+		for(Shop s: shops)
+		{
+			s.finishData();
+			for(InventoryView i: s.transactions)i.close();
+			for(InventoryView i: s.edit)i.close();
+			for(InventoryView i: s.price.keySet())i.close();
+			for(InventoryView i: s.storage)i.close();
+			s.transactions.clear();
+			s.edit.clear();
+			s.price.clear();
+			s.storage.clear();
+		}
+		for(Map.Entry<InventoryView, Block>k:create.entrySet())k.getKey().close();
+		create.clear();
+		shops.clear();
 		if(initsuccess)
 		{
 			File dat = new File(f, "data.dat");
@@ -198,20 +211,6 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				ioe.printStackTrace();
 			}
 		}
-		for(Shop s: shops)
-		{
-			for(InventoryView i: s.transactions)i.close();
-			for(InventoryView i: s.edit)i.close();
-			for(InventoryView i: s.price.keySet())i.close();
-			for(InventoryView i: s.storage)i.close();
-			s.transactions.clear();
-			s.edit.clear();
-			s.price.clear();
-			s.storage.clear();
-		}
-		for(Map.Entry<InventoryView, Block>k:create.entrySet())k.getKey().close();
-		create.clear();
-		shops.clear();
 		initsuccess = false;
 	}
 	@EventHandler(priority = EventPriority.MONITOR)
@@ -340,8 +339,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		}
 		else if(shp.storage.contains(event.getView()))
 		{
-			Inventory inv = event.getView().getTopInventory();
-			shp.setStorage(inv.getContents());
+			shp.storage.remove(event.getView());
 		}
 	}
 	@EventHandler
@@ -461,45 +459,64 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					int amount = cursor.getAmount();
 					if(event.isRightClick())amount = 1;
 					price *= amount;
-					if(shop.getOwner() != null)
+					String owner = shop.getOwner();
+					if(owner != null)
 					{
-						if(!econ.has(shop.getOwner(), price))
+						if(!econ.has(owner, price))
 						{
 							player.sendMessage(varTrans(config.getString("message.sell.fail", 
 									Messages.DEFAULT_SELL_FAIL), player, shop, amount, price + curname, price));
 							return;
 						}
-						econ.withdrawPlayer(shop.getOwner(), price);
 					}
-					//TODO Check storage space
-					if(price != 0)econ.depositPlayer(player.getName(), price);
+					if(shop.isLimited())
+					{
+						Inventory storage = shop.getStorage();
+						int freespace = 0;
+						for(ItemStack i:storage.getContents())
+						{
+							if(i == null || i.getType() == Material.AIR)
+							{
+								freespace += cursor.getType().getMaxStackSize();
+							}
+							else if(i.isSimilar(cursor))
+								freespace += i.getType().getMaxStackSize() - i.getAmount();
+						}
+						if(freespace < amount)
+						{
+							player.sendMessage(varTrans(config.getString("messages.sell.nospace", Messages.DEFAULT_SELL_NOSPACE), 
+									player, shop, amount, price + curname, price));
+							return;
+						}
+						ItemStack add = cursor.clone();
+						add.setAmount(amount);
+						storage.addItem(add);
+						net.minecraft.server.v1_6_R3.ItemStack sn = currentNMS.cloneItemStack();
+						sn.count = current.getAmount() - amount;
+						if(sn.count == 0)
+						{
+							sn = null;
+							event.getView().getTopInventory().setItem(event.getRawSlot(), CraftItemStack.asCraftMirror(sn));
+						}
+						else
+						{
+							event.getView().getTopInventory().setItem(event.getRawSlot(), CraftItemStack.asCraftMirror(sn));
+							removeLastLore(sn);
+						}
+						shop.setItem(event.getRawSlot(), sn, true);
+					}
+					if(price != 0)
+					{
+						econ.depositPlayer(player.getName(), price);
+						if(owner != null)econ.withdrawPlayer(owner, price);
+					}
 					player.sendMessage(varTrans(config.getString("message.sell.success", 
 							Messages.DEFAULT_SELL_SUCCESS), player, shop, amount, price + curname, price));
-					//TODO Add items to shop storage
 					if(amount < current.getAmount())
 					{
 						ItemStack n = cursor.clone();
 						n.setAmount(n.getAmount() - amount);
 						player.setItemOnCursor(n.getAmount() == 0 ? null : n);
-						if(shop.isLimited())
-						{
-							net.minecraft.server.v1_6_R3.ItemStack sn = currentNMS.cloneItemStack();
-							sn.count = current.getAmount() - amount;
-							event.getView().getTopInventory().setItem(event.getRawSlot(), CraftItemStack.asCraftMirror(sn));
-							removeLastLore(sn);
-							shop.setItem(event.getRawSlot(), sn, true);
-						}
-					}
-					else
-					{
-						ItemStack n = cursor.clone();
-						n.setAmount(n.getAmount() - amount);
-						player.setItemOnCursor(n.getAmount() == 0 ? null : n);
-						if(shop.isLimited())
-						{
-							shop.setItem(event.getRawSlot(), null);
-							event.getView().getTopInventory().setItem(event.getRawSlot(), null);
-						}
 					}
 				}
 			}
@@ -799,9 +816,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				Player player = (Player) sender;
 				if(!player.hasPermission("scs.storage.bypass") && !player.getName().equals(s.getOwner()))
 					return msg(sender, var(config.getString("message.cmd.notowned", Messages.DEFAULT_CMD_NOTOWNED), player));
-				Inventory inv = getServer().createInventory(null, 27, "Shop Storage");
-				inv.setContents(s.getStorage());
-				s.storage.add(player.openInventory(inv));
+				s.storage.add(player.openInventory(s.getStorage()));
 			}
 			else if(args[0].equalsIgnoreCase("setowner"))
 			{
@@ -1128,7 +1143,9 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		for(int i = 0; i < shops.size(); i ++)
 		{
 			NBTTagCompound a = (NBTTagCompound)shops.get(i);
-			this.shops.add(new Shop(a));
+			Shop s = new Shop(a);
+			s.loadData();
+			this.shops.add(s);
 		}
 	}
 }
