@@ -3,6 +3,9 @@ package net.skycraftmc.SignChestShop;
 public class Messages 
 {
 	public static final String DEFAULT_BUY_SUCCESS = "&e<itemcorrectu> bought for <price>!";
+	public static final String DEFAULT_BUY_SUCCESS_OWNED = "&e<itemcorrectu> bought from <owner> for <price>!";
+	public static final String DEFAULT_BUY_SUCCESS_TITLED = "&e<itemcorrectu> bought at <title> for <price>!";
+	public static final String DEFAULT_BUY_SUCCESS_TITLED_OWNED = "&e<itemcorrectu> bought at <title> from <owner> for <price>!";
 	public static final String DEFAULT_BUY_FAIL = "&eYou need at least <price> to buy this item!";
 	public static final String DEFAULT_BUY_FREE = "&e<itemcorrectu> bought for free!";
 	public static final String DEFAULT_BUY_INVALID = "&cYou can't do that!";
@@ -10,6 +13,9 @@ public class Messages
 	public static final String DEFAULT_BUY_NOPERMID = "&cYou are not allowed to buy this item!";
 	
 	public static final String DEFAULT_SELL_SUCCESS = "&e<itemcorrectu> sold for <price>!";
+	public static final String DEFAULT_SELL_SUCCESS_OWNED = "&e<itemcorrectu> sold to <owner> <price>!";
+	public static final String DEFAULT_SELL_SUCCESS_TITLED = "&e<itemcorrectu> sold at <title> for <price>!";
+	public static final String DEFAULT_SELL_SUCCESS_TITLED_OWNED = "&e<itemcorrectu> sold at <title> to <owner> for <price>!";
 	public static final String DEFAULT_SELL_NOPERM = "&cYou are not allowed to sell to shops.";
 	public static final String DEFAULT_SELL_NOPERMID = "&cYou are not allowed to sell this item!";
 	public static final String DEFAULT_SELL_INVALID = "&cYou can't do that!";
@@ -25,6 +31,10 @@ public class Messages
 	
 	public static final String DEFAULT_BREAK_NOPERM = "&cYou are not allowed to break shops!";
 	public static final String DEFAULT_BREAK_PERM = "&ePlease use &a/scs break &eto break this shop.";
+	
+	public static final String DEFAULT_SETTITLE_SUCCESS = "&eShop title set to \"<title>\"";
+	public static final String DEFAULT_SETTITLE_REMOVE = "&eShop title removed!";
+	public static final String DEFAULT_SETTITLE_FAIL = "&cThe shop title can only have a maximum of 32 characters!";
 	
 	public static final String DEFAULT_CMD_NOTARGET = "&cYou must target a SignChestShop!";
 	public static final String DEFAULT_CMD_NOPERM = "&cYou are not allowed to use this command!";

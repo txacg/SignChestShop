@@ -32,7 +32,7 @@ public class ConfigManager
 			config.insertComment(" single  - Items are bought as single items");
 			config.insertComment(" stack  - Items are bought as stacks");
 			config.insertComment(" amount  - Items are bought with the same amount as the displayed item");
-			config.write("buy.mode", config.getString("buy.mode", Options.DEFAULT_BUY_MODE));
+			config.writeKey("buy.mode", Options.DEFAULT_BUY_MODE);
 			config.insertComment("Enable this to make shift clicks buy a stack");
 			config.write("buy.shiftclick", "" + config.getBoolean("buy.shiftclick", Options.DEFAULT_BUY_SHIFTCLICK));
 			config.insertComment("Enable this to require players to have \"scs.buy\" in order to open a buy shop");
@@ -70,6 +70,13 @@ public class ConfigManager
 			config.insertComment("Message for an attempted breaking of a shop without the perm \"scs.create\"");
 			config.write("message.break.noperm", config.getString("message.beak.noperm", Messages.DEFAULT_BREAK_NOPERM));
 			config.writeLine();
+			config.insertComment("Message for setting the title of a shop.  <title> is the title of the shop.");
+			config.writeKey("message.settitle.success", Messages.DEFAULT_SETTITLE_SUCCESS);
+			config.insertComment("Message for removing the title of a shop");
+			config.writeKey("message.settitle.remove", Messages.DEFAULT_SETTITLE_REMOVE);
+			config.insertComment("Message for exceeding the 32 characters (Minecraft limitation; anything longer will cause errors) in a shop title");
+			config.writeKey("message.settitle.fail", Messages.DEFAULT_SETTITLE_FAIL);
+			config.writeLine();
 			config.insertComment("Buy/sell message variables:");
 			config.insertComment(" <amount>   - Amount of items bought");
 			config.insertComment(" <price>   - Price of items");
@@ -77,8 +84,14 @@ public class ConfigManager
 			config.insertComment(" <itemcorrectl>  - \"item\" with a \"s\" if plural");
 			config.insertComment(" <itemcorrectu>  - \"Item\" with a \"s\" if plural");
 			config.writeLine();
-			config.insertComment("Message for buying an item successfully");
-			config.write("message.buy.success", config.getString("message.buy.success", Messages.DEFAULT_BUY_SUCCESS));
+			config.insertComment("Message for buying an item from an unnamed and unowned shop successfully");
+			config.writeKey("message.buy.success", Messages.DEFAULT_BUY_SUCCESS);
+			config.insertComment("Message for buying an item from an unnamed and owned shop successfully");
+			config.writeKey("message.buy.success.owner", Messages.DEFAULT_BUY_SUCCESS_OWNED);
+			config.insertComment("Message for buying an item from a named and unowned shop successfully");
+			config.writeKey("message.buy.success.titled", Messages.DEFAULT_BUY_SUCCESS_TITLED);
+			config.insertComment("Message for buying an item from a named and owned shop successfully");
+			config.writeKey("message.buy.success.titledowner", Messages.DEFAULT_BUY_SUCCESS_TITLED_OWNED);
 			config.insertComment("Message for not having enough money while buying an item");
 			config.write("message.buy.fail", config.getString("message.buy.fail", Messages.DEFAULT_BUY_FAIL));
 			config.insertComment("Message for buying an item for free");
@@ -87,8 +100,14 @@ public class ConfigManager
 					"variables");
 			config.write("message.buy.invalid", config.getString("message.buy.invalid", Messages.DEFAULT_BUY_INVALID));
 			config.writeLine();
-			config.insertComment("Message for selling an item successfully");
-			config.write("message.sell.success", config.getString("message.sell.success", Messages.DEFAULT_SELL_SUCCESS));
+			config.insertComment("Message for selling an item to an unnamed and unowned shop successfully");
+			config.writeKey("message.sell.success", Messages.DEFAULT_SELL_SUCCESS);
+			config.insertComment("Message for selling an item to an unnamed and owned shop successfully");
+			config.writeKey("message.sell.success.owned", Messages.DEFAULT_SELL_SUCCESS_OWNED);
+			config.insertComment("Message for selling an item to an named and unowned shop successfully");
+			config.writeKey("message.sell.success.titled", Messages.DEFAULT_SELL_SUCCESS_TITLED);
+			config.insertComment("Message for selling an item to an named and owned shop successfully");
+			config.writeKey("message.sell.success.titledowned", Messages.DEFAULT_SELL_SUCCESS_TITLED_OWNED);
 			config.insertComment("Message for the owner of the shop not having enough money to buy a sold item");
 			config.write("message.sell.fail", config.getString("message.sell.fail", Messages.DEFAULT_SELL_FAIL));
 			config.insertComment("Message for doing an invalid action while shopping, ignores sell " +

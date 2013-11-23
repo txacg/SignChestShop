@@ -418,18 +418,18 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					price = price*amount;
 					if(!econ.has(player.getName(), price))
 					{
-						player.sendMessage(varBuy(config.getString("message.buy.fail", Messages.DEFAULT_BUY_FAIL), player,
+						player.sendMessage(varTrans(config.getString("message.buy.fail", Messages.DEFAULT_BUY_FAIL), player, shop,
 								amount, price + curname, price));
 						return;
 					}
 					if(price != 0)
 					{
 						econ.withdrawPlayer(player.getName(), price);
-						player.sendMessage(varBuy(config.getString("message.buy.success", 
-								Messages.DEFAULT_BUY_SUCCESS), player, amount, price + curname, price));
+						player.sendMessage(varTrans(config.getString("message.buy.success", 
+								Messages.DEFAULT_BUY_SUCCESS), player, shop, amount, price + curname, price));
 					}
-					else player.sendMessage(varBuy(config.getString("message.buy.free", 
-							Messages.DEFAULT_BUY_FREE), player, amount, price + curname, price));
+					else player.sendMessage(varTrans(config.getString("message.buy.free", 
+							Messages.DEFAULT_BUY_FREE), player, shop, amount, price + curname, price));
 					stripSCSData(currentNMS);
 					ItemStack n = CraftItemStack.asCraftMirror(currentNMS);
 					n.setAmount(amount + iamount);
@@ -462,15 +462,15 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					{
 						if(!econ.has(shop.getOwner(), price))
 						{
-							player.sendMessage(varBuy(config.getString("message.sell.fail", 
-									Messages.DEFAULT_SELL_FAIL), player, amount, price + curname, price));
+							player.sendMessage(varTrans(config.getString("message.sell.fail", 
+									Messages.DEFAULT_SELL_FAIL), player, shop, amount, price + curname, price));
 							return;
 						}
 						econ.withdrawPlayer(shop.getOwner(), price);
 					}
 					if(price != 0)econ.depositPlayer(player.getName(), price);
-					player.sendMessage(varBuy(config.getString("message.sell.success", 
-							Messages.DEFAULT_SELL_SUCCESS), player, amount, price + curname, price));
+					player.sendMessage(varTrans(config.getString("message.sell.success", 
+							Messages.DEFAULT_SELL_SUCCESS), player, shop, amount, price + curname, price));
 					if(cursor.getAmount() - amount <= 0)player.setItemOnCursor(null);
 					else
 					{
@@ -633,7 +633,6 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		return new DKey<Block, NBTTagCompound>(sb, c);
 	}
 	
-	//TODO Use an alternative for getTargetBlock when one is available
 	@SuppressWarnings("deprecation")
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)
 	{
@@ -793,6 +792,29 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				s.setLimited(l);
 				return msg(sender, ChatColor.GREEN + "This shop is now " + (l ? "" : "un") + "limited.");
 			}
+			else if(args[0].equalsIgnoreCase("settitle"))
+			{
+				Shop s = checkTarget(sender, "scs.create", 1, Integer.MAX_VALUE, args.length, "scs settitle <name>");
+				if(s == null)
+					return true;
+				Player player = (Player) sender;
+				if(!player.hasPermission("scs.admin") && !player.getName().equals(s.getOwner()))
+					return msg(sender, var(config.getString("message.cmd.notowned", Messages.DEFAULT_CMD_NOTOWNED), player));
+				if(args[0].equalsIgnoreCase("none"))
+				{
+					s.setTitle(null);
+					return msg(sender, var(config.getString("message.settitle.remove", Messages.DEFAULT_SETTITLE_REMOVE), player));
+				}
+				StringBuffer sb = new StringBuffer();
+				sb.append(args[1]);
+				for(int i = 2; i < args.length; i ++)
+					sb.append(" ").append(args[i]);
+				String n = sb.toString();
+				if(n.length() > 32)
+					return msg(sender, var(config.getString("message.settitle.fail", Messages.DEFAULT_SETTITLE_FAIL), player).replaceAll("<title>", n));
+				s.setTitle(n);
+				msg(sender, var(config.getString("message.settitle", Messages.DEFAULT_SETTITLE_SUCCESS), player).replaceAll("<title>", n));
+			}
 			else if(args[0].equalsIgnoreCase("help"))helpCmd(sender, args);
 			else sender.sendMessage(ChatColor.GOLD + "Command unrecognized.  " +
 					"Type " + ChatColor.AQUA + "/scs help" + ChatColor.GOLD + " for help");
@@ -850,11 +872,12 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			msg(sender, def("/scs edit", "Edits a shop"));
 			msg(sender, def("/scs setmode <mode>", "Sets the mode of a shop"));
 			msg(sender, def("/scs storage", "Accesses a shop's storage"));
+			msg(sender, def("/scs settitle <name>", "Sets the title of a shop"));
 		}
 		if(sender.hasPermission("scs.admin"))
 		{
 			msg(sender, def("/scs setowner <name>", "Sets the owner of a shop"));
-			msg(sender, def("/scs setavailibility <true/false>", "Sets shop item availability"));
+			msg(sender, def("/scs setlimited <true/false>", "Sets shop item availability"));
 		}
 		if(sender.hasPermission("scs.reload"))msg(sender, def("/scs reload", "Reloads the config"));
 		if(sender.hasPermission("scs.refresh"))msg(sender, def("/scs refresh", "Updates the config"));
@@ -1028,7 +1051,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 	{
 		return ChatColor.translateAlternateColorCodes('&', s);
 	}
-	private String varBuy(String s, Player player, int amount, String price, double rawprice)
+	private String varTrans(String s, Player player, Shop shop, int amount, String price, double rawprice)
 	{
 		String a = var(s, player);
 		a = a.replaceAll("<amount>", "" + amount);
@@ -1036,6 +1059,8 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		a = a.replaceAll("<rawprice>", "" + rawprice);
 		a = a.replaceAll("<itemcorrectl>", (amount == 1 ? "item" : "items"));
 		a = a.replaceAll("<itemcorrectu>", (amount == 1 ? "Item" : "Items"));
+		a = a.replaceAll("<owner>", shop.getOwner());;
+		a = a.replaceAll("<title>", shop.getTitle());
 		return a;
 	}
 	private String var(String s, Player player)

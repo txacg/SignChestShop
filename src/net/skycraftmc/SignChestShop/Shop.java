@@ -230,8 +230,15 @@ public class Shop
 	{
 		int m = getMode().ID;
 		boolean b = m == 0;
-		String ostring = getOwner() != null ? " " + (b ? "from" : "to") + " " + getOwner() : "";
-		Inventory i = SignChestShopPlugin.inst.getShop(data, true, (b ? "Buy" : "Sell") + ostring);
+		String ftitle = null;
+		String title = getTitle();
+		if(title == null)
+		{
+			String ostring = getOwner() != null ? " " + (b ? "from" : "to") + " " + getOwner() : "";
+			ftitle = (b ? "Buy" : "Sell") + ostring;
+		}
+		else ftitle = title;
+		Inventory i = SignChestShopPlugin.inst.getShop(data, true, ftitle);
 		InventoryView iv = player.openInventory(i);
 		transactions.add(iv);
 		return iv;
@@ -278,6 +285,27 @@ public class Shop
 		if(owner == null)
 			data.remove("owner");
 		else data.setString("owner", owner);
+		update();
+	}
+	
+	/**
+	 * @return The title of this shop, or null if this shop has no title.
+	 */
+	public String getTitle()
+	{
+		if(!data.hasKey("title"))return null;
+		return data.getString("title");
+	}
+	
+	/**
+	 * Sets the title of this shop.
+	 * @param title - The new title of this shop, or null to remove the title.
+	 */
+	public void setTitle(String title)
+	{
+		if(title == null)
+			data.remove("title");
+		else data.setString("title", title);
 		update();
 	}
 	
