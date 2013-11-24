@@ -270,7 +270,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			}
 			if(c.isEmpty())
 			{
-				player.sendMessage(var(config.getString("message.create.cancel", Messages.DEFAULT_CREATE_CANCEL), player));
+				player.sendMessage(varPlayer(config.getString("message.create.cancel", Messages.DEFAULT_CREATE_CANCEL), player));
 				return;
 			}
 			Block b = create.get(event.getView());
@@ -296,7 +296,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			shop.set("items", items);
 			shops.add(new Shop(shop));
 			data.getList("Shops").add(shop);
-			player.sendMessage(var(config.getString("message.create.success", Messages.DEFAULT_CREATE_SUCCESS), player));
+			player.sendMessage(varPlayer(config.getString("message.create.success", Messages.DEFAULT_CREATE_SUCCESS), player));
 			if(e)
 			{
 				s.setLine(0, ChatColor.AQUA + "Shop");
@@ -312,7 +312,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		else if(shp == null)return;
 		else if(shp.price.containsKey(event.getView()))
 		{
-			player.sendMessage(var(config.getString("message.price.cancel", Messages.DEFAULT_PRICE_CANCEL), player));
+			player.sendMessage(varPlayer(config.getString("message.price.cancel", Messages.DEFAULT_PRICE_CANCEL), player));
 			shp.price.remove(event.getView());
 			shp.update();
 			return;
@@ -333,7 +333,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				else items.add(new NBTTagCompound());
 			}
 			shop.set("items", items);
-			player.sendMessage(var(config.getString("message.edit", Messages.DEFAULT_EDIT), player));
+			player.sendMessage(varPlayer(config.getString("message.edit", Messages.DEFAULT_EDIT), player));
 			shp.edit.remove(event.getView());
 			shp.update();
 		}
@@ -377,7 +377,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				if(current == null || current.getType() == Material.AIR)
 				{
 					if(mode == ShopMode.SELL)
-						player.sendMessage(var(config.getString("message.sell.invalid", Messages.DEFAULT_SELL_INVALID), player));
+						player.sendMessage(varPlayer(config.getString("message.sell.invalid", Messages.DEFAULT_SELL_INVALID), player));
 					return;
 				}
 				net.minecraft.server.v1_6_R3.ItemStack currentNMS = nmsStack(current.clone());
@@ -388,7 +388,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				{
 					if(!player.hasPermission("scs." + str + "." + current.getTypeId()) && !player.hasPermission("scs." + str + ".*"))
 					{
-						player.sendMessage(var(config.getString("message." + str + ".noperm",  mode == ShopMode.BUY ? 
+						player.sendMessage(varPlayer(config.getString("message." + str + ".noperm",  mode == ShopMode.BUY ? 
 								Messages.DEFAULT_BUY_NOPERM : Messages.DEFAULT_SELL_NOPERM), player));
 						return;
 					}
@@ -524,7 +524,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					event.getSlot() != -999) || (!top && event.getCurrentItem().getType() != Material.AIR
 					&& event.isShiftClick()))
 			{
-				player.sendMessage(var(config.getString("message." + str + ".invalid", Messages.DEFAULT_SELL_INVALID), player));
+				player.sendMessage(varPlayer(config.getString("message." + str + ".invalid", Messages.DEFAULT_SELL_INVALID), player));
 				player.updateInventory();
 				event.setCancelled(true);
 			}
@@ -534,7 +534,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			double p = shop.price.get(event.getView());
 			if(!top)
 			{
-				player.sendMessage(var(config.getString("message.price.cancel", Messages.DEFAULT_PRICE_CANCEL), player));
+				player.sendMessage(varPlayer(config.getString("message.price.cancel", Messages.DEFAULT_PRICE_CANCEL), player));
 				event.setCancelled(true);
 				event.getView().close();
 				return;
@@ -546,7 +546,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				shop.price.remove(event.getView());
 				event.getView().close();
 			}
-			player.sendMessage(var(config.getString("message.price.set", Messages.DEFAULT_PRICE_SET), player));
+			player.sendMessage(varPlayer(config.getString("message.price.set", Messages.DEFAULT_PRICE_SET), player));
 		}
 		else if(shop.edit.contains(event.getView()))
 		{
@@ -650,7 +650,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			boolean a = player.hasPermission("signchestshop.create");
 			if(a)player.sendMessage(color(config.getString("message.break.perm",
 					Messages.DEFAULT_BREAK_PERM)));
-			else player.sendMessage(var(config.getString(
+			else player.sendMessage(varPlayer(config.getString(
 					"message.break.noperm", Messages.DEFAULT_BREAK_NOPERM), player));
 			event.setCancelled(true);
 			sb.getState().update();
@@ -695,9 +695,9 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				Player player = (Player)sender;
 				Block b = player.getTargetBlock(null, 5);
 				if(b == null)
-					return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+					return msg(sender, varPlayer(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
 				if(b.getType() != Material.SIGN_POST && b.getType() != Material.WALL_SIGN)
-					return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+					return msg(sender, varPlayer(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
 				Sign s = (Sign)b.getState();
 				boolean e = false;
 				for(String x:s.getLines())
@@ -719,10 +719,10 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				if(noConsole(sender))return true;
 				Player player = (Player)sender;
 				Block b = player.getTargetBlock(null, 5);
-				if(b == null)return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+				if(b == null)return msg(sender, varPlayer(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
 				NBTTagCompound s = getShopData(b);
 				if(s == null)
-					return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+					return msg(sender, varPlayer(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
 				Sign sign = (Sign)b.getState();
 				sign.setLine(0, "");
 				sign.setLine(1, "");
@@ -739,10 +739,10 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				if(args.length != 2)return msg(sender, ChatColor.RED + "Usage: /scs price <price>");
 				Player player = (Player)sender;
 				Block b = player.getTargetBlock(null, 5);
-				if(b == null)return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+				if(b == null)return msg(sender, varPlayer(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
 				NBTTagCompound s = getShopData(b);
 				if(s == null)
-					return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+					return msg(sender, varPlayer(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
 				double price;
 				if(args[1].equalsIgnoreCase("free"))price = 0;
 				else if(args[1].equalsIgnoreCase("display"))price = -1;
@@ -768,10 +768,10 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				if(noConsole(sender))return true;
 				Player player = (Player)sender;
 				Block b = player.getTargetBlock(null, 5);
-				if(b == null)return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+				if(b == null)return msg(sender, varPlayer(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
 				NBTTagCompound s = getShopData(b);
 				if(s == null)
-					return msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+					return msg(sender, varPlayer(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
 				Inventory i = getShop(s, false, "Edit");
 				getShop(b).edit.add(player.openInventory(i));
 			}
@@ -815,7 +815,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					return true;
 				Player player = (Player) sender;
 				if(!player.hasPermission("scs.storage.bypass") && !player.getName().equals(s.getOwner()))
-					return msg(sender, var(config.getString("message.cmd.notowned", Messages.DEFAULT_CMD_NOTOWNED), player));
+					return msg(sender, varPlayer(config.getString("message.cmd.notowned", Messages.DEFAULT_CMD_NOTOWNED), player));
 				s.storage.add(player.openInventory(s.getStorage()));
 			}
 			else if(args[0].equalsIgnoreCase("setowner"))
@@ -847,11 +847,11 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					return true;
 				Player player = (Player) sender;
 				if(!player.hasPermission("scs.admin") && !player.getName().equals(s.getOwner()))
-					return msg(sender, var(config.getString("message.cmd.notowned", Messages.DEFAULT_CMD_NOTOWNED), player));
+					return msg(sender, varPlayer(config.getString("message.cmd.notowned", Messages.DEFAULT_CMD_NOTOWNED), player));
 				if(args[0].equalsIgnoreCase("none"))
 				{
 					s.setTitle(null);
-					return msg(sender, var(config.getString("message.settitle.remove", Messages.DEFAULT_SETTITLE_REMOVE), player));
+					return msg(sender, varPlayer(config.getString("message.settitle.remove", Messages.DEFAULT_SETTITLE_REMOVE), player));
 				}
 				StringBuffer sb = new StringBuffer();
 				sb.append(args[1]);
@@ -859,9 +859,9 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					sb.append(" ").append(args[i]);
 				String n = sb.toString();
 				if(n.length() > 32)
-					return msg(sender, var(config.getString("message.settitle.fail", Messages.DEFAULT_SETTITLE_FAIL), player).replaceAll("<title>", n));
+					return msg(sender, varPlayer(config.getString("message.settitle.fail", Messages.DEFAULT_SETTITLE_FAIL), player).replaceAll("<title>", n));
 				s.setTitle(n);
-				msg(sender, var(config.getString("message.settitle", Messages.DEFAULT_SETTITLE_SUCCESS), player).replaceAll("<title>", n));
+				msg(sender, varPlayer(config.getString("message.settitle", Messages.DEFAULT_SETTITLE_SUCCESS), player).replaceAll("<title>", n));
 			}
 			else if(args[0].equalsIgnoreCase("help"))helpCmd(sender, args);
 			else sender.sendMessage(ChatColor.GOLD + "Command unrecognized.  " +
@@ -890,12 +890,12 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		Block b = player.getTargetBlock(null, 5);
 		if(b == null)
 		{
-			msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+			msg(sender, varPlayer(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
 			return null;
 		}
 		Shop s = getShop(b);
 		if(s == null)
-			msg(sender, var(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+			msg(sender, varPlayer(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
 		return s;
 	}
 	private boolean noConsole(CommandSender sender)
@@ -1027,23 +1027,27 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				NBTTagCompound display = tag.getCompound("display");
 				if(!display.hasKey("Lore"))display.set("Lore", new NBTTagList());
 				NBTTagList lore = display.getList("Lore");
-				String price = "Display only";
+				String price = config.getString("shop.price.text", Options.DEFAULT_PRICE_TEXT);
+				String pprice;
+				double rprice = -1;
 				if(tag.hasKey("scs_price"))
 				{
-					double rprice = tag.getDouble("scs_price");
-					if(rprice < 0)price = "Display only";
-					if(rprice == 0)price = "Free";
+					rprice = tag.getDouble("scs_price");
+					if(rprice < 0)pprice = config.getString("shop.price.display", Options.DEFAULT_PRICE_DISPLAY);
+					if(rprice == 0)pprice = config.getString("shop.price.free", Options.DEFAULT_PRICE_FREE);
 					else
 					{
-						String bmode = config.getString("buy.mode", "single");
-						if(bmode.equalsIgnoreCase("amount"))
-							price = placePadding(rprice*cis.getAmount()) + " total (" + placePadding(rprice) + " each)";
-						else if(bmode.equalsIgnoreCase("stack"))
-							price = placePadding(rprice) + " each; " + placePadding(rprice*cis.getType().getMaxStackSize()) + " per stack";
-						else price = placePadding(rprice);
+						if(cis.getAmount() == 1)
+							pprice = config.getString("shop.price.cost", Options.DEFAULT_PRICE_COST).replaceAll("<rawprice>", placePadding(rprice));
+						else pprice = config.getString("shop.price.costmulti", Options.DEFAULT_PRICE_COSTMULTI)
+							.replaceAll("<rawprice>", placePadding(rprice)).replaceAll("<totalprice>", placePadding(rprice*cis.getAmount()));
 					}
 				}
-				lore.add(new NBTTagString("", ChatColor.AQUA + "Price: " + ChatColor.GOLD + price));
+				else
+				{
+					pprice = config.getString("shop.price.display", Options.DEFAULT_PRICE_DISPLAY);
+				}
+				lore.add(new NBTTagString("", varCur(price.replaceAll("<price>", pprice), rprice)));
 			}
 			ilist.add(cis);
 		}
@@ -1101,21 +1105,35 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 	}
 	private String varTrans(String s, Player player, Shop shop, int amount, String price, double rawprice)
 	{
-		String a = var(s, player);
+		String a = varCur(varPlayer(s, player), rawprice);
 		a = a.replaceAll("<amount>", "" + amount);
 		a = a.replaceAll("<price>", "" + price);
 		a = a.replaceAll("<rawprice>", "" + rawprice);
 		a = a.replaceAll("<itemcorrectl>", (amount == 1 ? "item" : "items"));
 		a = a.replaceAll("<itemcorrectu>", (amount == 1 ? "Item" : "Items"));
-		a = a.replaceAll("<owner>", shop.getOwner());;
-		a = a.replaceAll("<title>", shop.getTitle());
+		return varShop(a, shop);
+	}
+	private String varShop(String s, Shop shop)
+	{
+		String a = var(s);
+		a.replaceAll("<owner>", shop.getOwner() == null ? "" : shop.getOwner());
+		a.replaceAll("<title>", shop.getTitle() == null ? "" : shop.getTitle());
 		return a;
 	}
-	private String var(String s, Player player)
+	private String varPlayer(String s, Player player)
+	{
+		return var(s).replaceAll("<player>", player.getName());
+	}
+	private String var(String s)
 	{
 		String a = color(s);
-		a = a.replaceAll("<player>", player.getName());
+		a = a.replaceAll("<curnameplur>", econ.currencyNamePlural());
+		a = a.replaceAll("<curnamesing>", econ.currencyNameSingular());
 		return a;
+	}
+	private String varCur(String s, double amount)
+	{
+		return var(s).replaceAll("<curname>", amount == 1 ? econ.currencyNameSingular() : econ.currencyNamePlural());
 	}
 	private void integCheck()
 	{

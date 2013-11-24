@@ -359,7 +359,7 @@ public class Shop
 	}
 	
 	/**
-	 * @return The contents of the shop's storage.
+	 * @return An {@link Inventory} representing the contents of the shop's storage.
 	 */
 	public Inventory getStorage()
 	{
