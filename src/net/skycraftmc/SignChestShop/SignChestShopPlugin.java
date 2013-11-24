@@ -494,19 +494,6 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 						ItemStack add = cursor.clone();
 						add.setAmount(amount);
 						storage.addItem(add);
-						net.minecraft.server.v1_6_R3.ItemStack sn = currentNMS.cloneItemStack();
-						sn.count = current.getAmount() - amount;
-						if(sn.count == 0)
-						{
-							sn = null;
-							event.getView().getTopInventory().setItem(event.getRawSlot(), CraftItemStack.asCraftMirror(sn));
-						}
-						else
-						{
-							event.getView().getTopInventory().setItem(event.getRawSlot(), CraftItemStack.asCraftMirror(sn));
-							removeLastLore(sn);
-						}
-						shop.setItem(event.getRawSlot(), sn, true);
 					}
 					if(price != 0)
 					{
