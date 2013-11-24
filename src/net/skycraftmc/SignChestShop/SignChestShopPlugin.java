@@ -710,16 +710,17 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				Player player = (Player)sender;
 				Block b = player.getTargetBlock(null, 5);
 				if(b == null)return msg(sender, varPlayer(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
-				NBTTagCompound s = getShopData(b);
+				Shop s = api.getShop(b);
 				if(s == null)
 					return msg(sender, varPlayer(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+				if(checkOwner(player, s, "scs.bypass.break"))return true;
 				Sign sign = (Sign)b.getState();
 				sign.setLine(0, "");
 				sign.setLine(1, "");
 				sign.setLine(2, "");
 				sign.setLine(3, "");
 				sign.update();
-				removeShop(s);
+				removeShop(s.data);
 				player.sendMessage(ChatColor.YELLOW + "SignChestShop broken.");
 			}
 			else if(args[0].equalsIgnoreCase("price"))
@@ -733,6 +734,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				NBTTagCompound s = getShopData(b);
 				if(s == null)
 					return msg(sender, varPlayer(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+				if(checkOwner(player, getShopObject(s), "scs.bypass.price"))return true;
 				double price;
 				if(args[1].equalsIgnoreCase("free"))price = 0;
 				else if(args[1].equalsIgnoreCase("display"))price = -1;
@@ -762,6 +764,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				NBTTagCompound s = getShopData(b);
 				if(s == null)
 					return msg(sender, varPlayer(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+				if(checkOwner(player, getShopObject(s), "scs.bypass.edit"))return true;
 				Inventory i = getShop(s, false, "Edit");
 				getShop(b).edit.add(player.openInventory(i));
 			}
@@ -793,6 +796,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				Shop s = checkTarget(sender, "scs.create", 2, 2, args.length, "scs setmode <mode>");
 				if(s == null)
 					return true;
+				if(checkOwner((Player) sender, s, "scs.bypass.setmode"))return true;
 				if(args[1].equalsIgnoreCase("buy"))s.setMode(ShopMode.BUY);
 				else if(args[1].equalsIgnoreCase("sell"))s.setMode(ShopMode.SELL);
 				else return msg(sender, ChatColor.RED + "Acceptable modes: buy, sell");
@@ -804,8 +808,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				if(s == null)
 					return true;
 				Player player = (Player) sender;
-				if(!player.hasPermission("scs.storage.bypass") && !player.getName().equals(s.getOwner()))
-					return msg(sender, varPlayer(config.getString("message.cmd.notowned", Messages.DEFAULT_CMD_NOTOWNED), player));
+				if(checkOwner(player, s, "scs.bypass.storage"))return true;
 				s.storage.add(player.openInventory(s.getStorage()));
 			}
 			else if(args[0].equalsIgnoreCase("setowner"))
@@ -836,8 +839,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				if(s == null)
 					return true;
 				Player player = (Player) sender;
-				if(!player.hasPermission("scs.admin") && !player.getName().equals(s.getOwner()))
-					return msg(sender, varPlayer(config.getString("message.cmd.notowned", Messages.DEFAULT_CMD_NOTOWNED), player));
+				if(checkOwner(player, s, "scs.bypass.settitle"))return true;
 				if(args[0].equalsIgnoreCase("none"))
 				{
 					s.setTitle(null);
@@ -887,6 +889,12 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		if(s == null)
 			msg(sender, varPlayer(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
 		return s;
+	}
+	private boolean checkOwner(Player player, Shop shop, String perm)
+	{
+		if(!player.hasPermission(perm) && !player.getName().equals(shop.getOwner()))
+			return msg(player, varPlayer(config.getString("message.cmd.notowned", Messages.DEFAULT_CMD_NOTOWNED), player));
+		return false;
 	}
 	private boolean noConsole(CommandSender sender)
 	{
@@ -1069,6 +1077,15 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 	protected Inventory getShop(NBTTagCompound shop, boolean buy)
 	{
 		return getShop(shop, buy, "Shop");
+	}
+	
+	protected Shop getShopObject(NBTTagCompound data)
+	{
+		for(Shop s: shops)
+		{
+			if(s.data == data)return s;
+		}
+		return null;
 	}
 	
 	private class DKey<V, O>

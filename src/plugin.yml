@@ -8,3 +8,17 @@ commands:
          description: SignChestShop commands
          usage: /signchestshop <args>
          aliases: [scs]
+permissions:
+    scs.admin:
+        description: Grants access to administrative SignChestShop commands
+        children:
+            scs.bypass.*: true
+    scs.bypass.*:
+        description: Grants all bypass permissions
+        children:
+            scs.bypass.storage: true
+            scs.bypass.edit: true
+            scs.bypass.break: true
+            scs.bypass.settitle: true
+            scs.bypass.setmode: true
+            scs.bypass.price: true
