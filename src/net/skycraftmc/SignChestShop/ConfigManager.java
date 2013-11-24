@@ -45,6 +45,11 @@ public class ConfigManager
 			config.insertComment("Minimum decimal places to display for prices");
 			config.writeKey("shop.mindecplaces", Options.DEFAULT_SHOP_MINDECPLACES);
 			config.writeLine();
+			config.insertComment("Enable this to make shops limited on creation");
+			config.writeKey("shop.auto.limit", Options.DEFAULT_SHOP_AUTO_LIMIT);
+			config.insertComment("Enable this to make each creator of a shop the owner of the shop on creation");
+			config.writeKey("shop.auto.owner", Options.DEFAULT_SHOP_AUTO_OWNER);
+			config.writeLine();
 			config.insertComment("==== Buying Options ====#");
 			config.writeLine();
 			config.insertComment("Buying modes:");

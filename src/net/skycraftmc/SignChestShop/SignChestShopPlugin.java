@@ -294,7 +294,10 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				items.add(copy);
 			}
 			shop.set("items", items);
-			shops.add(new Shop(shop));
+			Shop shopvar = new Shop(shop);
+			if(config.getBoolean("shop.auto.owner", Options.DEFAULT_SHOP_AUTO_OWNER))shopvar.setOwner(player.getName());
+			shopvar.setLimited(config.getBoolean("shop.auto.limit", Options.DEFAULT_SHOP_AUTO_LIMIT));
+			shops.add(shopvar);
 			data.getList("Shops").add(shop);
 			player.sendMessage(varPlayer(config.getString("message.create.success", Messages.DEFAULT_CREATE_SUCCESS), player));
 			if(e)

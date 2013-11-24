@@ -17,4 +17,6 @@ public class Options
 	public static final String DEFAULT_PRICE_DISPLAY = "Display Only";
 	public static final String DEFAULT_PRICE_COST = "<rawprice> <curname>";
 	public static final String DEFAULT_PRICE_COSTMULTI = "<totalprice> <curname> total (<rawprice> <curname> each)";
+	public static final boolean DEFAULT_SHOP_AUTO_LIMIT = true;
+	public static final boolean DEFAULT_SHOP_AUTO_OWNER = true;
 }
