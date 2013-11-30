@@ -461,6 +461,9 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					if(cursor.getType() == Material.AIR)return;
 					int amount = cursor.getAmount();
 					if(event.isRightClick())amount = 1;
+					boolean limited = shop.isLimited();
+					if(limited && amount > current.getAmount())
+						amount = current.getAmount();
 					price *= amount;
 					String owner = shop.getOwner();
 					if(owner != null)
@@ -472,7 +475,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 							return;
 						}
 					}
-					if(shop.isLimited())
+					if(limited)
 					{
 						Inventory storage = shop.getStorage();
 						int freespace = 0;
@@ -485,15 +488,42 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 							else if(i.isSimilar(cursor))
 								freespace += i.getType().getMaxStackSize() - i.getAmount();
 						}
-						if(freespace < amount)
+						if(freespace < amount*2)
 						{
 							player.sendMessage(varTrans(config.getString("messages.sell.nospace", Messages.DEFAULT_SELL_NOSPACE), 
 									player, shop, amount, price + curname, price));
 							return;
 						}
-						ItemStack add = cursor.clone();
-						add.setAmount(amount);
+						int ms = cursor.getType().getMaxStackSize();
+						ItemStack o = cursor.clone();
+						int ac = amount*2;
+						o.setAmount(ac > ms ? ms : ac);
+						int as = 0;
+						for(int i = 0; i < ac; i += ms)
+							as++;
+						ItemStack[] add = new ItemStack[as];
+						for(int i = 0; ac > ms; ac -= ms)
+							add[i] = o;
+						if(ac > 0)
+						{
+							o = o.clone();
+							o.setAmount(ac);
+							add[add.length - 1] = o;
+						}
 						storage.addItem(add);
+						if(amount == current.getAmount())
+						{
+							shop.setItem(event.getRawSlot(), null);
+							event.getView().getTopInventory().setItem(event.getRawSlot(), null);
+						}
+						else
+						{
+							net.minecraft.server.v1_6_R3.ItemStack sn = nmsStack(current);
+							sn.count = current.getAmount() - amount;
+							event.getView().getTopInventory().setItem(event.getRawSlot(), CraftItemStack.asCraftMirror(sn));
+							removeLastLore(sn);
+							shop.setItem(event.getRawSlot(), sn, true);
+						}
 					}
 					if(price != 0)
 					{
@@ -502,12 +532,9 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					}
 					player.sendMessage(varTrans(config.getString("message.sell.success", 
 							Messages.DEFAULT_SELL_SUCCESS), player, shop, amount, price + curname, price));
-					if(amount < current.getAmount())
-					{
-						ItemStack n = cursor.clone();
-						n.setAmount(n.getAmount() - amount);
-						player.setItemOnCursor(n.getAmount() == 0 ? null : n);
-					}
+					ItemStack n = cursor.clone();
+					n.setAmount(n.getAmount() - amount);
+					player.setItemOnCursor(n.getAmount() == 0 ? null : n);
 				}
 			}
 			else if((top && player.getItemOnCursor().getType() != Material.AIR && 
