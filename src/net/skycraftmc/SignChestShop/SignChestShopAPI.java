@@ -1,7 +1,7 @@
 package net.skycraftmc.SignChestShop;
 
-import net.minecraft.server.v1_6_R3.NBTTagCompound;
-import net.minecraft.server.v1_6_R3.NBTTagList;
+import net.minecraft.server.v1_7_R1.NBTTagCompound;
+import net.minecraft.server.v1_7_R1.NBTTagList;
 import net.skycraftmc.SignChestShop.Shop.ShopMode;
 
 import org.bukkit.Location;
@@ -100,7 +100,7 @@ public class SignChestShopAPI
 	 */
 	public Shop[] getShops()
 	{
-		NBTTagList shops = plugin.data.getList("Shops");
+		NBTTagList shops = plugin.data.getList("Shops", 10);
 		Shop[] a = new Shop[shops.size()];
 		for(int i = 0; i < shops.size(); i ++)
 		{

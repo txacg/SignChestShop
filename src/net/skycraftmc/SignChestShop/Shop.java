@@ -3,15 +3,15 @@ package net.skycraftmc.SignChestShop;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import net.minecraft.server.v1_6_R3.NBTBase;
-import net.minecraft.server.v1_6_R3.NBTTagCompound;
-import net.minecraft.server.v1_6_R3.NBTTagList;
+import net.minecraft.server.v1_7_R1.NBTBase;
+import net.minecraft.server.v1_7_R1.NBTTagCompound;
+import net.minecraft.server.v1_7_R1.NBTTagList;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_6_R3.inventory.CraftInventoryCustom;
-import org.bukkit.craftbukkit.v1_6_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_7_R1.inventory.CraftInventoryCustom;
+import org.bukkit.craftbukkit.v1_7_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
@@ -98,13 +98,13 @@ public class Shop
 	 */
 	public ItemStack[] getContents()
 	{
-		NBTTagList ilist = data.getList("items");
+		NBTTagList ilist = data.getList("items", 10);
 		ItemStack[] i = new ItemStack[ilist.size()];
 		for(int a = 0; a < ilist.size(); a ++)
 		{
 			NBTTagCompound c = (NBTTagCompound) ilist.get(a);
 			if(c.c().size() == 0)i[a] = null;
-			else i[a] = CraftItemStack.asCraftMirror((net.minecraft.server.v1_6_R3.ItemStack.createStack(c)));
+			else i[a] = CraftItemStack.asCraftMirror((net.minecraft.server.v1_7_R1.ItemStack.createStack(c)));
 		}
 		return i;
 	}
@@ -115,7 +115,7 @@ public class Shop
 	 */
 	public double getPrice(int index)
 	{
-		NBTTagList ilist = data.getList("items");
+		NBTTagList ilist = data.getList("items", 10);
 		if(index >= ilist.size() || index < 0)
 			throw new ArrayIndexOutOfBoundsException(index);
 		NBTTagCompound c = (NBTTagCompound) ilist.get(index);
@@ -135,13 +135,13 @@ public class Shop
 	 */
 	public void setPrice(int index, double price)
 	{
-		NBTTagList ilist = data.getList("items");
+		NBTTagList ilist = data.getList("items", 10);
 		if(index >= ilist.size() || index < 0)
 			throw new ArrayIndexOutOfBoundsException(index);
 		NBTTagCompound c = (NBTTagCompound) ilist.get(index);
 		if(c.c().size() == 0)
 			throw new IllegalArgumentException("index " + index + " contains no item");
-		if(!c.hasKey("tag"))c.setCompound("tag", new NBTTagCompound());
+		if(!c.hasKey("tag"))c.set("tag", new NBTTagCompound());
 		NBTTagCompound tag = c.getCompound("tag");
 		if(price >= 0)tag.setDouble("scs_price", price);
 		else tag.remove("scs_price");
@@ -158,9 +158,9 @@ public class Shop
 		setItem(index, CraftItemStack.asNMSCopy(item), retainPrice);
 	}
 	
-	protected void setItem(int index, net.minecraft.server.v1_6_R3.ItemStack item, boolean retainPrice)
+	protected void setItem(int index, net.minecraft.server.v1_7_R1.ItemStack item, boolean retainPrice)
 	{
-		NBTTagList ilist = data.getList("items");
+		NBTTagList ilist = data.getList("items", 10);
 		if(index >= ilist.size() || index < 0)
 			throw new ArrayIndexOutOfBoundsException(index);
 		NBTTagCompound old = (NBTTagCompound) ilist.get(index);
@@ -172,14 +172,14 @@ public class Shop
 		setItem(old, item, retainPrice);
 	}
 	
-	protected void setItem(NBTTagCompound old, net.minecraft.server.v1_6_R3.ItemStack nms, boolean retainPrice)
+	protected void setItem(NBTTagCompound old, net.minecraft.server.v1_7_R1.ItemStack nms, boolean retainPrice)
 	{
 		NBTTagCompound c = new NBTTagCompound();
 		nms.save(c);
 		for(Object o:c.c())
 		{
-			NBTBase b = (NBTBase)o;
-			String name = b.getName();
+			String name = (String) o;
+			NBTBase b = c.get(name);
 			if(name.equals("scs_price"))
 			{
 				if(!retainPrice)old.remove("scs_price");
@@ -218,11 +218,11 @@ public class Shop
 	
 	protected void loadData()
 	{
-		NBTTagList l = data.getList("storage");
+		NBTTagList l = data.getList("storage", 10);
 		for(int i = 0; i < l.size(); i ++)
 		{
 			storageinv.setItem(i, CraftItemStack.asCraftMirror(
-					net.minecraft.server.v1_6_R3.ItemStack.createStack((NBTTagCompound) l.get(i))));
+					net.minecraft.server.v1_7_R1.ItemStack.createStack((NBTTagCompound) l.get(i))));
 		}
 	}
 	

@@ -2,6 +2,7 @@ package net.skycraftmc.SignChestShop;
 
 import java.io.DataInput;
 import java.io.DataInputStream;
+import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,10 +19,11 @@ import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
 
 import net.milkbowl.vault.economy.Economy;
-import net.minecraft.server.v1_6_R3.NBTBase;
-import net.minecraft.server.v1_6_R3.NBTTagCompound;
-import net.minecraft.server.v1_6_R3.NBTTagList;
-import net.minecraft.server.v1_6_R3.NBTTagString;
+import net.minecraft.server.v1_7_R1.NBTBase;
+import net.minecraft.server.v1_7_R1.NBTCompressedStreamTools;
+import net.minecraft.server.v1_7_R1.NBTTagCompound;
+import net.minecraft.server.v1_7_R1.NBTTagList;
+import net.minecraft.server.v1_7_R1.NBTTagString;
 import net.skycraftmc.SignChestShop.Shop.ShopMode;
 import net.skycraftmc.SignChestShop.util.UpdateInformation;
 import net.skycraftmc.SignChestShop.util.Updater;
@@ -35,7 +37,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_6_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_7_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -82,7 +84,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		String[] vercheck = getServer().getClass().getPackage().getName().split("[.]", 4);
 		if(vercheck.length == 4)
 		{
-			if(!vercheck[3].equals("v1_6_R3"))getLogger().warning(
+			if(!vercheck[3].equals("v1_7_R1"))getLogger().warning(
 					"This version of SignChestShop may not be compatible with this version of CraftBukkit.");
 		}
 		else getLogger().warning(
@@ -104,18 +106,12 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			try
 			{
 				DataInputStream dis = new DataInputStream(new FileInputStream(dat));
-				NBTBase b = NBTBase.a(dis);
-				if(b != null)
-				{
-					if(b instanceof NBTTagCompound)data = (NBTTagCompound)b;
-					else c = true;
-				}
-				else c = true;
+				load(dis);
 				dis.close();
 			}
-			catch(IOException ioe)
+			catch (Exception e2)
 			{
-				e = ioe;
+				e = e2;
 				c = true;
 			}
 			if(c)
@@ -127,10 +123,11 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				}
 				catch(Exception ea)
 				{
-					log.warning("Failed to load/convert data!");
-					e = ea;
+					log.warning("Failed to load data!");
+					e.printStackTrace();
+					log.warning("Failed to convert data!");
+					ea.printStackTrace();
 				}
-				if(e != null)e.printStackTrace();
 			}
 		}
 		else data.set("Shops", new NBTTagList());
@@ -197,7 +194,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				DataOutputStream dos = new DataOutputStream(new FileOutputStream(dat));
 				try
 				{
-					NBTBase.a(data, dos);
+					save(dos);
 				}
 				catch(Exception e)
 				{
@@ -298,7 +295,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			if(config.getBoolean("shop.auto.owner", Options.DEFAULT_SHOP_AUTO_OWNER))shopvar.setOwner(player.getName());
 			shopvar.setLimited(config.getBoolean("shop.auto.limit", Options.DEFAULT_SHOP_AUTO_LIMIT));
 			shops.add(shopvar);
-			data.getList("Shops").add(shop);
+			data.getList("Shops", 10).add(shop);
 			player.sendMessage(varPlayer(config.getString("message.create.success", Messages.DEFAULT_CREATE_SUCCESS), player));
 			if(e)
 			{
@@ -383,7 +380,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 						player.sendMessage(varPlayer(config.getString("message.sell.invalid", Messages.DEFAULT_SELL_INVALID), player));
 					return;
 				}
-				net.minecraft.server.v1_6_R3.ItemStack currentNMS = nmsStack(current.clone());
+				net.minecraft.server.v1_7_R1.ItemStack currentNMS = nmsStack(current.clone());
 				if(!currentNMS.getTag().hasKey("scs_price"))
 					return;
 				double price = currentNMS.getTag().getDouble("scs_price");
@@ -448,7 +445,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 						}
 						else 
 						{
-							net.minecraft.server.v1_6_R3.ItemStack sn = nmsStack(current);
+							net.minecraft.server.v1_7_R1.ItemStack sn = nmsStack(current);
 							sn.count = current.getAmount() - amount;
 							event.getView().getTopInventory().setItem(event.getRawSlot(), CraftItemStack.asCraftMirror(sn));
 							removeLastLore(sn);
@@ -518,7 +515,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 						}
 						else
 						{
-							net.minecraft.server.v1_6_R3.ItemStack sn = nmsStack(current);
+							net.minecraft.server.v1_7_R1.ItemStack sn = nmsStack(current);
 							sn.count = current.getAmount() - amount;
 							event.getView().getTopInventory().setItem(event.getRawSlot(), CraftItemStack.asCraftMirror(sn));
 							removeLastLore(sn);
@@ -574,7 +571,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			{
 				if(!top || sclick)
 				{
-					net.minecraft.server.v1_6_R3.ItemStack nms = nmsStack(i);
+					net.minecraft.server.v1_7_R1.ItemStack nms = nmsStack(i);
 					stripSCSData(nms);
 					event.setCursor(CraftItemStack.asCraftMirror(nms));
 					final Player runnablePlayer = player;
@@ -601,10 +598,10 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		return newlore;
 	}
 	
-	private void removeLastLore(net.minecraft.server.v1_6_R3.ItemStack item)
+	private void removeLastLore(net.minecraft.server.v1_7_R1.ItemStack item)
 	{
 		NBTTagCompound display = item.tag.getCompound("display");
-		NBTTagList lore = display.getList("Lore");
+		NBTTagList lore = display.getList("Lore", 8);
 		if(lore.size() == 1)display.remove("Lore");
 		else display.set("Lore", removeLastLore(lore));
 		if(display.c().size() == 0)item.tag.remove("display");
@@ -612,29 +609,29 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 	}
 	
 	@SuppressWarnings("unused")
-	private boolean isSimilar(net.minecraft.server.v1_6_R3.ItemStack stack1, net.minecraft.server.v1_6_R3.ItemStack stack2)
+	private boolean isSimilar(net.minecraft.server.v1_7_R1.ItemStack stack1, net.minecraft.server.v1_7_R1.ItemStack stack2)
 	{
-		net.minecraft.server.v1_6_R3.ItemStack s1c = stack1.cloneItemStack();
-		net.minecraft.server.v1_6_R3.ItemStack s2c = stack2.cloneItemStack();
+		net.minecraft.server.v1_7_R1.ItemStack s1c = stack1.cloneItemStack();
+		net.minecraft.server.v1_7_R1.ItemStack s2c = stack2.cloneItemStack();
 		stripSCSData(s1c);
 		stripSCSData(s2c);
 		return CraftItemStack.asCraftMirror(s1c).isSimilar(CraftItemStack.asCraftMirror(s2c));
 	}
 	
-	private boolean isSimilarUnstripped(net.minecraft.server.v1_6_R3.ItemStack display, net.minecraft.server.v1_6_R3.ItemStack unstr)
+	private boolean isSimilarUnstripped(net.minecraft.server.v1_7_R1.ItemStack display, net.minecraft.server.v1_7_R1.ItemStack unstr)
 	{
-		net.minecraft.server.v1_6_R3.ItemStack s1c = display.cloneItemStack();
-		net.minecraft.server.v1_6_R3.ItemStack s2c = unstr.cloneItemStack();
+		net.minecraft.server.v1_7_R1.ItemStack s1c = display.cloneItemStack();
+		net.minecraft.server.v1_7_R1.ItemStack s2c = unstr.cloneItemStack();
 		stripSCSData(s1c);
 		return CraftItemStack.asCraftMirror(s1c).isSimilar(CraftItemStack.asCraftMirror(s2c));
 	}
 	
-	private void stripSCSData(net.minecraft.server.v1_6_R3.ItemStack nms)
+	private void stripSCSData(net.minecraft.server.v1_7_R1.ItemStack nms)
 	{
 		stripSCSData(nms, true);
 	}
 	
-	private void stripSCSData(net.minecraft.server.v1_6_R3.ItemStack nms, boolean lastlore)
+	private void stripSCSData(net.minecraft.server.v1_7_R1.ItemStack nms, boolean lastlore)
 	{
 		if(nms.tag == null)return;
 		nms.tag.remove("scs_price");
@@ -969,7 +966,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		return true;
 	}
 	
-	protected net.minecraft.server.v1_6_R3.ItemStack nmsStack(ItemStack i)
+	protected net.minecraft.server.v1_7_R1.ItemStack nmsStack(ItemStack i)
 	{
 		return CraftItemStack.asNMSCopy(i);
 	}
@@ -977,7 +974,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 	protected NBTTagCompound getShopData(Block b)
 	{
 		Location bloc = b.getLocation();
-		NBTTagList shops = data.getList("Shops");
+		NBTTagList shops = data.getList("Shops", 10);
 		for(int i = 0; i < shops.size(); i ++)
 		{
 			NBTTagCompound d = (NBTTagCompound)shops.get(i);
@@ -999,7 +996,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 	
 	protected void removeShop(NBTTagCompound s)
 	{
-		NBTTagList shops = data.getList("Shops");
+		NBTTagList shops = data.getList("Shops", 10);
 		NBTTagList newshops = new NBTTagList();
 		for(int i = 0; i < shops.size(); i ++)
 		{
@@ -1032,7 +1029,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 	
 	protected Inventory getShop(NBTTagCompound shop, boolean displayprice, String title)
 	{
-		NBTTagList items = shop.getList("items");
+		NBTTagList items = shop.getList("items", 10);
 		ArrayList<ItemStack>ilist = new ArrayList<ItemStack>();
 		for(int i = 0; i <items.size(); i ++)
 		{
@@ -1042,16 +1039,16 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				ilist.add(null);
 				continue;
 			}
-			net.minecraft.server.v1_6_R3.ItemStack item = net.minecraft.server.v1_6_R3.ItemStack.createStack(c);
+			net.minecraft.server.v1_7_R1.ItemStack item = net.minecraft.server.v1_7_R1.ItemStack.createStack(c);
 			CraftItemStack cis = CraftItemStack.asCraftMirror(item);
 			if(displayprice)
 			{
 				NBTTagCompound tag = item.getTag();
 				if(tag == null)item.setTag((tag = new NBTTagCompound()));
-				if(!tag.hasKey("display"))tag.setCompound("display", new NBTTagCompound());
+				if(!tag.hasKey("display"))tag.set("display", new NBTTagCompound());
 				NBTTagCompound display = tag.getCompound("display");
 				if(!display.hasKey("Lore"))display.set("Lore", new NBTTagList());
-				NBTTagList lore = display.getList("Lore");
+				NBTTagList lore = display.getList("Lore", 8);
 				String price = config.getString("shop.price.text", Options.DEFAULT_PRICE_TEXT);
 				String pprice;
 				double rprice = -1;
@@ -1072,7 +1069,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				{
 					pprice = config.getString("shop.price.display", Options.DEFAULT_PRICE_DISPLAY);
 				}
-				lore.add(new NBTTagString("", varCur(price.replaceAll("<price>", pprice), rprice)));
+				lore.add(new NBTTagString(varCur(price.replaceAll("<price>", pprice), rprice)));
 			}
 			ilist.add(cis);
 		}
@@ -1171,7 +1168,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 	}
 	private void integCheck()
 	{
-		NBTTagList shops = data.getList("Shops");
+		NBTTagList shops = data.getList("Shops", 10);
 		for(int i = 0; i < shops.size(); i ++)
 		{
 			NBTTagCompound a = (NBTTagCompound)shops.get(i);
@@ -1181,17 +1178,31 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		}
 	}
 	
+	private void save(DataOutputStream s) throws Exception
+	{
+		Method m = NBTTagCompound.class.getDeclaredMethod("a", String.class, NBTBase.class, DataOutput.class);
+		m.setAccessible(true);
+		m.invoke(null, "", data, s);
+	}
+	
+	private void load(DataInputStream s) throws Exception
+	{
+		Method m = NBTCompressedStreamTools.class.getDeclaredMethod("a", DataInput.class, int.class);
+		m.setAccessible(true);
+		data = (NBTTagCompound) m.invoke(null, s, 0);
+	}
+	
 	private void loadOld(File dat)throws Exception
 	{
 		DataInputStream dis = new DataInputStream(new FileInputStream(dat));
-		Method m = NBTTagCompound.class.getDeclaredMethod("load", DataInput.class);
+		Method m = NBTTagCompound.class.getDeclaredMethod("load", DataInput.class, int.class);
 		m.setAccessible(true);
-		m.invoke(data, dis);
+		m.invoke(data, dis, 0);
 	}
 	
 	private void buildShops()
 	{
-		NBTTagList shops = data.getList("Shops");
+		NBTTagList shops = data.getList("Shops", 10);
 		for(int i = 0; i < shops.size(); i ++)
 		{
 			NBTTagCompound a = (NBTTagCompound)shops.get(i);
