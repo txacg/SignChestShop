@@ -39,6 +39,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.v1_7_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event.Result;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -370,6 +371,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			String str = mode == ShopMode.BUY ? "buy" : "sell";
 			if(top)
 			{
+				event.setResult(Result.DENY);
 				event.setCancelled(true);
 				player.updateInventory();
 				ItemStack current = event.getCurrentItem();
@@ -533,6 +535,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					n.setAmount(n.getAmount() - amount);
 					player.setItemOnCursor(n.getAmount() == 0 ? null : n);
 				}
+				player.updateInventory();
 			}
 			else if((top && player.getItemOnCursor().getType() != Material.AIR && 
 					event.getSlot() != -999) || (!top && event.getCurrentItem().getType() != Material.AIR
@@ -540,20 +543,21 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			{
 				player.sendMessage(varPlayer(config.getString("message." + str + ".invalid", Messages.DEFAULT_SELL_INVALID), player));
 				player.updateInventory();
+				event.setResult(Result.DENY);
 				event.setCancelled(true);
 			}
 		}
 		else if(shop.price.containsKey(event.getView()) && event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR)
 		{
 			double p = shop.price.get(event.getView());
+			event.setResult(Result.DENY);
+			event.setCancelled(true);
 			if(!top)
 			{
 				player.sendMessage(varPlayer(config.getString("message.price.cancel", Messages.DEFAULT_PRICE_CANCEL), player));
-				event.setCancelled(true);
 				event.getView().close();
 				return;
 			}
-			event.setCancelled(true);
 			shop.setPrice(event.getSlot(), p);
 			if(event.getAction() == InventoryAction.PICKUP_ALL)
 			{
