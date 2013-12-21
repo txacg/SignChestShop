@@ -12,6 +12,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -53,6 +54,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.material.MaterialData;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -564,6 +566,16 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				shop.price.remove(event.getView());
 				event.getView().close();
 			}
+			else
+			{
+				net.minecraft.server.v1_7_R1.ItemStack nms = CraftItemStack.asNMSCopy(event.getCurrentItem());
+				NBTTagList l = nms.getTag().getCompound("display").getList("Lore", 8);
+				NBTTagList nl = setLastLore(l, price(nms.tag, event.getCurrentItem().getAmount(), p));
+				nms.tag.getCompound("display").set("Lore", nl);
+				
+				event.getInventory().setItem(event.getRawSlot(), CraftItemStack.asCraftMirror(nms));
+				player.updateInventory();
+			}
 			player.sendMessage(varPlayer(config.getString("message.price.set", Messages.DEFAULT_PRICE_SET), player));
 		}
 		else if(shop.edit.contains(event.getView()))
@@ -592,12 +604,23 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		}
 	}
 	
+	private NBTTagList setLastLore(NBTTagList lore, String string)
+	{
+		NBTTagList newlore = new NBTTagList();
+		for(int x = 0; x < lore.size() - 1; x ++)
+		{
+			newlore.add(new NBTTagString(lore.f(x)));
+		}
+		newlore.add(new NBTTagString(string));
+		return newlore;
+	}
+	
 	private NBTTagList removeLastLore(NBTTagList lore)
 	{
 		NBTTagList newlore = new NBTTagList();
 		for(int x = 0; x < lore.size() - 1; x ++)
 		{
-			newlore.add(lore.get(x));
+			newlore.add(new NBTTagString(lore.f(x)));
 		}
 		return newlore;
 	}
@@ -1073,7 +1096,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				{
 					pprice = config.getString("shop.price.display", Options.DEFAULT_PRICE_DISPLAY);
 				}
-				lore.add(new NBTTagString(varCur(price.replaceAll("<price>", pprice), rprice)));
+				lore.add(new NBTTagString(price(tag, cis.getAmount(), null)));
 			}
 			ilist.add(cis);
 		}
@@ -1085,6 +1108,31 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			i.setItem(a, ilist.get(a));
 		}
 		return i;
+	}
+	
+	private String price(NBTTagCompound tag, int amount, Double gprice)
+	{
+		String price = config.getString("shop.price.text", Options.DEFAULT_PRICE_TEXT);
+		String pprice;
+		double rprice = -1;
+		if(tag.hasKey("scs_price"))
+		{
+			rprice = gprice == null ? tag.getDouble("scs_price") : gprice.doubleValue();
+			if(rprice < 0)pprice = config.getString("shop.price.display", Options.DEFAULT_PRICE_DISPLAY);
+			if(rprice == 0)pprice = config.getString("shop.price.free", Options.DEFAULT_PRICE_FREE);
+			else
+			{
+				if(amount == 1)
+					pprice = config.getString("shop.price.cost", Options.DEFAULT_PRICE_COST).replaceAll("<rawprice>", placePadding(rprice));
+				else pprice = config.getString("shop.price.costmulti", Options.DEFAULT_PRICE_COSTMULTI)
+					.replaceAll("<rawprice>", placePadding(rprice)).replaceAll("<totalprice>", placePadding(rprice*amount));
+			}
+		}
+		else
+		{
+			pprice = config.getString("shop.price.display", Options.DEFAULT_PRICE_DISPLAY);
+		}
+		return varCur(price.replaceAll("<price>", pprice), rprice);
 	}
 	
 	private String placePadding(double price)
