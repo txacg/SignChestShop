@@ -237,7 +237,7 @@ public class Shop
 	}
 	
 	/**
-	 * @return The mode of the shop, such as BUY or SELL
+	 * @return The {@link ShopMode} of the shop
 	 */
 	public ShopMode getMode()
 	{
@@ -379,11 +379,13 @@ public class Shop
 		 * Represents a shop that players sell to.
 		 */
 		SELL;
+		
 		/**
 		 * The ID of this shop mode.
 		 * @see #getID()
 		 */
 		public final int ID = ordinal();
+		
 		/**
 		 * Finds and returns a {@link ShopMode} with the specified ID, or null if not found.
 		 * @param id - The ID of the shop mode
