@@ -3,6 +3,9 @@ package net.skycraftmc.SignChestShop;
 import java.io.IOException;
 import java.util.logging.Level;
 
+import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
+
 public class ConfigManager
 {
 	SignChestShopPlugin plugin;
@@ -181,5 +184,62 @@ public class ConfigManager
 		{
 			plugin.getLogger().log(Level.SEVERE, "Could not load config, reverting to defaults", ioe);
 		}
+	}
+	
+	String color(String s)
+	{
+		return ChatColor.translateAlternateColorCodes('&', s);
+	}
+	
+	String varTrans(String s, Player player, Shop shop, int amount, String price, double rawprice)
+	{
+		String a = varCur(varPlayer(s, player), rawprice);
+		a = a.replaceAll("<amount>", "" + amount);
+		a = a.replaceAll("<price>", "" + price);
+		a = a.replaceAll("<rawprice>", "" + rawprice);
+		a = a.replaceAll("<itemcorrectl>", (amount == 1 ? "item" : "items"));
+		a = a.replaceAll("<itemcorrectu>", (amount == 1 ? "Item" : "Items"));
+		return varShop(a, shop);
+	}
+	
+	String varShop(String s, Shop shop)
+	{
+		String a = var(s);
+		a.replaceAll("<owner>", shop.getOwner() == null ? "" : shop.getOwner());
+		a.replaceAll("<title>", shop.getTitle() == null ? "" : shop.getTitle());
+		return a;
+	}
+	
+	String varPlayer(String s, Player player)
+	{
+		return var(s).replaceAll("<player>", player.getName());
+	}
+	
+	String var(String s)
+	{
+		String a = color(s);
+		a = a.replaceAll("<curnameplur>", plugin.econ.currencyNamePlural());
+		a = a.replaceAll("<curnamesing>", plugin.econ.currencyNameSingular());
+		return a;
+	}
+	
+	String varCur(String s, double amount)
+	{
+		return var(s).replaceAll("<curname>", amount == 1 ? plugin.econ.currencyNameSingular() : plugin.econ.currencyNamePlural());
+	}
+	
+	String placePadding(double price)
+	{
+		String pstring = Double.toString(price);
+		int places = pstring.length() - pstring.indexOf('.') - 1;
+		int min = config.getInt("shop.mindecplaces", Options.DEFAULT_SHOP_MINDECPLACES);
+		if(places < min)
+		{
+			StringBuffer sb = new StringBuffer().append(pstring);
+			for(int j = places; j < min; j ++)
+				sb.append(0);
+			pstring = sb.toString();
+		}
+		return pstring;
 	}
 }
