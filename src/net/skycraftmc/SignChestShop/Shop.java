@@ -109,6 +109,47 @@ public class Shop
 		return i;
 	}
 	
+	net.minecraft.server.v1_7_R1.ItemStack getRawItem(int index)
+	{
+		NBTTagList ilist = data.getList("items", 10);
+		if(index >= ilist.size() || index < 0)
+			return null;
+		return net.minecraft.server.v1_7_R1.ItemStack.createStack(ilist.get(index));
+	}
+	
+	/**
+	 * Returns the item at the specified slot.
+	 * @param index - The index of the item
+	 * @param withPriceText - If set to true, then the item will have the price lore attached
+	 * @return The item, or null if the specified index does not contain an item.
+	 */
+	public ItemStack getItem(int index, boolean withPriceText)
+	{
+		NBTTagList ilist = data.getList("items", 10);
+		if(index >= ilist.size() || index < 0)
+			return null;
+		NBTTagCompound tag = ilist.get(index);
+		net.minecraft.server.v1_7_R1.ItemStack item = 
+			net.minecraft.server.v1_7_R1.ItemStack.createStack(tag);
+		if(withPriceText)
+			SignChestShopPlugin.inst.addPrice(item);
+		else if(item.tag != null)
+			SignChestShopPlugin.inst.stripSCSData(item, false);
+		return CraftItemStack.asCraftMirror(item);
+	}
+	
+	/**
+	 * Returns the item at the specified slot.  Has the same
+	 * effect as calling {@link #getItem(int, boolean)} with
+	 * withPriceText set to false.
+	 * @param index - The index of the item
+	 * @return The item, or null if the specified index does not contain an item.
+	 */
+	public ItemStack getItem(int index)
+	{
+		return getItem(index, false);
+	}
+	
 	/**
 	 * @param index - The index of the item
 	 * @return The price of the item, -1 if it is display only, or -2 if no item exists at the index.

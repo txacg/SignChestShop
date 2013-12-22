@@ -415,7 +415,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					else amount = 1;
 					if(event.getAction() == InventoryAction.PICKUP_HALF || event.getAction() == InventoryAction.PICKUP_ONE)
 						amount = 1;
-					int iamount = player.getItemOnCursor().getAmount();
+					int iamount = event.getCursor().getAmount();
 					if(amount + iamount > a)amount = a - iamount;
 					price = price*amount;
 					if(!econ.has(player.getName(), price))
@@ -432,8 +432,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					}
 					else player.sendMessage(cm.varTrans(config.getString("message.buy.free", 
 							Messages.DEFAULT_BUY_FREE), player, shop, amount, price + curname, price));
-					stripSCSData(currentNMS);
-					ItemStack n = CraftItemStack.asCraftMirror(currentNMS);
+					ItemStack n = iamount == 0 ? shop.getItem(event.getRawSlot()) : player.getItemOnCursor();
 					n.setAmount(amount + iamount);
 					player.setItemOnCursor(n);
 					if(shop.getOwner() != null)
@@ -447,11 +446,8 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 						}
 						else 
 						{
-							net.minecraft.server.v1_7_R1.ItemStack sn = nmsStack(current);
-							sn.count = current.getAmount() - amount;
-							event.getView().getTopInventory().setItem(event.getRawSlot(), CraftItemStack.asCraftMirror(sn));
-							removeLastLore(sn);
-							shop.setItem(event.getRawSlot(), sn, true);
+							updateShopItems(shop, current.getAmount(), amount, event.getRawSlot(), 
+									event.getView().getTopInventory());
 						}
 					}
 				}
@@ -517,11 +513,8 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 						}
 						else
 						{
-							net.minecraft.server.v1_7_R1.ItemStack sn = nmsStack(current);
-							sn.count = current.getAmount() - amount;
-							event.getView().getTopInventory().setItem(event.getRawSlot(), CraftItemStack.asCraftMirror(sn));
-							removeLastLore(sn);
-							shop.setItem(event.getRawSlot(), sn, true);
+							updateShopItems(shop, current.getAmount(), amount, event.getRawSlot(), 
+								event.getView().getTopInventory());
 						}
 					}
 					if(price != 0)
@@ -566,15 +559,12 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			}
 			else
 			{
-				net.minecraft.server.v1_7_R1.ItemStack nms = CraftItemStack.asNMSCopy(event.getCurrentItem());
-				NBTTagList l = nms.getTag().getCompound("display").getList("Lore", 8);
-				NBTTagList nl = setLastLore(l, price(nms.tag, event.getCurrentItem().getAmount(), p));
-				nms.tag.getCompound("display").set("Lore", nl);
-				
+				net.minecraft.server.v1_7_R1.ItemStack nms = shop.getRawItem(event.getRawSlot());
+				addPrice(nms);
 				event.getInventory().setItem(event.getRawSlot(), CraftItemStack.asCraftMirror(nms));
-				player.updateInventory();
 			}
 			player.sendMessage(cm.varPlayer(config.getString("message.price.set", Messages.DEFAULT_PRICE_SET), player));
+			player.updateInventory();
 		}
 		else if(shop.edit.contains(event.getView()))
 		{
@@ -587,7 +577,8 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 				{
 					net.minecraft.server.v1_7_R1.ItemStack nms = nmsStack(i);
 					stripSCSData(nms);
-					event.setCursor(CraftItemStack.asCraftMirror(nms));
+					final ItemStack ui = CraftItemStack.asCraftMirror(nms);
+					event.getView().setCursor(ui);
 					final Player runnablePlayer = player;
 					getServer().getScheduler().scheduleSyncDelayedTask(this,
 						new Runnable()
@@ -602,15 +593,19 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		}
 	}
 	
-	private NBTTagList setLastLore(NBTTagList lore, String string)
+	private void updateShopItems(Shop shop, int ca, int amount, int slot, Inventory inv)
 	{
-		NBTTagList newlore = new NBTTagList();
-		for(int x = 0; x < lore.size() - 1; x ++)
-		{
-			newlore.add(new NBTTagString(lore.f(x)));
-		}
-		newlore.add(new NBTTagString(string));
-		return newlore;
+		updateShopItems(shop, ca - amount, slot, inv);
+	}
+	
+	private void updateShopItems(Shop shop, int namount, int slot, Inventory inv)
+	{
+		net.minecraft.server.v1_7_R1.ItemStack sn = shop.getRawItem(slot);
+		sn.count = namount;
+		shop.setItem(slot, sn, true);
+		sn = sn.cloneItemStack();
+		addPrice(sn);
+		inv.setItem(slot, CraftItemStack.asCraftMirror(sn));
 	}
 	
 	private NBTTagList removeLastLore(NBTTagList lore)
@@ -630,7 +625,6 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		if(lore.size() == 1)display.remove("Lore");
 		else display.set("Lore", removeLastLore(lore));
 		if(display.c().size() == 0)item.tag.remove("display");
-		if(item.tag.c().size() == 0)item.setTag(null);
 	}
 	
 	@SuppressWarnings("unused")
@@ -651,16 +645,17 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		return CraftItemStack.asCraftMirror(s1c).isSimilar(CraftItemStack.asCraftMirror(s2c));
 	}
 	
-	private void stripSCSData(net.minecraft.server.v1_7_R1.ItemStack nms)
+	void stripSCSData(net.minecraft.server.v1_7_R1.ItemStack nms)
 	{
 		stripSCSData(nms, true);
 	}
 	
-	private void stripSCSData(net.minecraft.server.v1_7_R1.ItemStack nms, boolean lastlore)
+	void stripSCSData(net.minecraft.server.v1_7_R1.ItemStack nms, boolean lastlore)
 	{
 		if(nms.tag == null)return;
 		nms.tag.remove("scs_price");
 		if(lastlore)removeLastLore(nms);
+		if(nms.tag.c().size() == 0)nms.setTag(null);
 	}
 	
 	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -672,7 +667,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			Block b = it.next();
 			NBTTagCompound c = getShopData(b);
 			if(c != null)it.remove();
-			else if(getAttachedShop(b).getValue() != null)it.remove();
+			else if(getAttachedShop(b).b != null)it.remove();
 		}
 	}
 	
@@ -681,8 +676,8 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 	{
 		Block b = event.getBlock();
 		DKey<Block, NBTTagCompound> k = getAttachedShop(b);
-		Block sb = k.getKey();
-		NBTTagCompound c = k.getValue();
+		Block sb = k.a;
+		NBTTagCompound c = k.b;
 		if(c != null)
 		{
 			Player player = event.getPlayer();
@@ -794,7 +789,8 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 						price = Double.parseDouble(args[1]);
 						if(price <= 0)return msg(sender, ChatColor.RED + 
 								"Price must be a positive number!");
-					}catch(NumberFormatException nfe)
+					}
+					catch(NumberFormatException nfe)
 					{
 						return msg(sender, ChatColor.RED + 
 								"\"" + args[1] + "\" is not a valid number.");
@@ -1066,16 +1062,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			}
 			net.minecraft.server.v1_7_R1.ItemStack item = net.minecraft.server.v1_7_R1.ItemStack.createStack(c);
 			CraftItemStack cis = CraftItemStack.asCraftMirror(item);
-			if(displayprice)
-			{
-				NBTTagCompound tag = item.getTag();
-				if(tag == null)item.setTag((tag = new NBTTagCompound()));
-				if(!tag.hasKey("display"))tag.set("display", new NBTTagCompound());
-				NBTTagCompound display = tag.getCompound("display");
-				if(!display.hasKey("Lore"))display.set("Lore", new NBTTagList());
-				NBTTagList lore = display.getList("Lore", 8);
-				lore.add(new NBTTagString(price(tag, cis.getAmount(), null)));
-			}
+			if(displayprice)addPrice(item);
 			ilist.add(cis);
 		}
 		Inventory i = this.getServer().createInventory(null, 27, title);
@@ -1088,7 +1075,18 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		return i;
 	}
 	
-	private String price(NBTTagCompound tag, int amount, Double gprice)
+	void addPrice(net.minecraft.server.v1_7_R1.ItemStack item)
+	{
+		NBTTagCompound tag = item.tag;
+		if(tag == null)item.setTag((tag = new NBTTagCompound()));
+		if(!tag.hasKey("display"))tag.set("display", new NBTTagCompound());
+		NBTTagCompound display = tag.getCompound("display");
+		if(!display.hasKey("Lore"))display.set("Lore", new NBTTagList());
+		NBTTagList lore = display.getList("Lore", 8);
+		lore.add(new NBTTagString(price(tag, item.count, null)));
+	}
+	
+	String price(NBTTagCompound tag, int amount, Double gprice)
 	{
 		String price = config.getString("shop.price.text", Options.DEFAULT_PRICE_TEXT);
 		String pprice;
@@ -1129,20 +1127,12 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 	
 	private class DKey<V, O>
 	{
-		private V a;
-		private O b;
+		V a;
+		O b;
 		public DKey(V a, O b)
 		{
 			this.a = a;
 			this.b = b;
-		}
-		public V getKey()
-		{
-			return a;
-		}
-		public O getValue()
-		{
-			return b;
 		}
 	}
 	
