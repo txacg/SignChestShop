@@ -1,6 +1,7 @@
 package net.skycraftmc.SignChestShop;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.logging.Level;
 
 import net.minecraft.server.v1_7_R1.NBTTagCompound;
@@ -27,6 +28,21 @@ public class SignChestShopCommandExecutor implements CommandExecutor
 		cm = plugin.cm;
 		config = plugin.cm.config;
 	}
+	
+	private final CmdDesc[] help = {
+		new CmdDesc("scs help", "Displays this menu", null),	
+		new CmdDesc("scs create", "Creates a shop", "scs.create"),
+		new CmdDesc("scs break", "Deletes a shop", "scs.create"),
+		new CmdDesc("scs price", "Prices items in a shop", "scs.create"),
+		new CmdDesc("scs edit", "Edits a shop", "scs.create"),
+		new CmdDesc("scs setmode <mode>", "Sets the mode of a shop", "scs.create"),
+		new CmdDesc("scs storage", "Accesses a shop's storage", "scs.create"),
+		new CmdDesc("scs settitle <name>", "Sets the title of a shop", "scs.create"),
+		new CmdDesc("scs setowner <name>", "Sets the owner of a shop", "scs.admin"),
+		new CmdDesc("scs setlimited <true/false>", "Sets shop item availibility", "scs.admin"),
+		new CmdDesc("scs reload", "Reloads the config", "scs.reload"),
+		new CmdDesc("scs refresh", "Updates the config", "scs.update"),
+	};
 
 	@SuppressWarnings("deprecation")
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)
@@ -211,7 +227,7 @@ public class SignChestShopCommandExecutor implements CommandExecutor
 				s.setTitle(n);
 				msg(sender, cm.varPlayer(config.getString("message.settitle", Messages.DEFAULT_SETTITLE_SUCCESS), player).replaceAll("<title>", n));
 			}
-			else if(args[0].equalsIgnoreCase("help"))helpCmd(sender, args);
+			else if(args[0].equalsIgnoreCase("help"))helpCmd(sender, args, "SignChestShop", help);
 			else sender.sendMessage(ChatColor.GOLD + "Command unrecognized.  " +
 					"Type " + ChatColor.AQUA + "/scs help" + ChatColor.GOLD + " for help");
 		}
@@ -267,27 +283,40 @@ public class SignChestShopCommandExecutor implements CommandExecutor
 		return true;
 	}
 
-	private boolean helpCmd(CommandSender sender, String[] args)
+	public boolean helpCmd(CommandSender sender, String[] args, String title, CmdDesc[] help)
 	{
-		sender.sendMessage(ChatColor.GOLD + "SignChestShop Help");
-		msg(sender, def("/scs help", "Displays this menu"));
-		if(sender.hasPermission("scs.create"))
+		int page = 1;
+		if(args.length == 2)
 		{
-			msg(sender, def("/scs create", "Creates a shop"));
-			msg(sender, def("/scs break", "Deletes a shop"));
-			msg(sender, def("/scs price <price>", "Prices items in a shop"));
-			msg(sender, def("/scs edit", "Edits a shop"));
-			msg(sender, def("/scs setmode <mode>", "Sets the mode of a shop"));
-			msg(sender, def("/scs storage", "Accesses a shop's storage"));
-			msg(sender, def("/scs settitle <name>", "Sets the title of a shop"));
+			try
+			{
+				page = Integer.parseInt(args[1]);
+			}
+			catch(NumberFormatException nfe)
+			{
+				return msg(sender, ChatColor.RED + "\"" + args[1] + "\" is not a valid number");
+			}
 		}
-		if(sender.hasPermission("scs.admin"))
+		ArrayList<String>d = new ArrayList<String>();
+		int max = 1;
+		int cmda = 0;
+		for(int i = 0; i < help.length; i ++)
 		{
-			msg(sender, def("/scs setowner <name>", "Sets the owner of a shop"));
-			msg(sender, def("/scs setlimited <true/false>", "Sets shop item availability"));
+			CmdDesc c = help[i];
+			if(c.getPerm() != null)
+			{
+				if(!sender.hasPermission(c.getPerm()))continue;
+			}
+			if(d.size() < 10)
+			{
+				if(i >= (page - 1)*10 && i <= ((page - 1)*10) + 9)d.add(c.asDef());
+			}
+			if(cmda > 10 && cmda % 10 == 1)max ++;
+			cmda ++;
 		}
-		if(sender.hasPermission("scs.reload"))msg(sender, def("/scs reload", "Reloads the config"));
-		if(sender.hasPermission("scs.refresh"))msg(sender, def("/scs refresh", "Updates the config"));
+		sender.sendMessage(ChatColor.GOLD + title + " Help (" + ChatColor.AQUA + page + ChatColor.GOLD + "/" + 
+				ChatColor.AQUA + max + ChatColor.GOLD + "), " + ChatColor.AQUA + cmda + ChatColor.GOLD + " total");
+		for(String s:d)sender.sendMessage(s);
 		return true;
 	}
 
@@ -301,5 +330,26 @@ public class SignChestShopCommandExecutor implements CommandExecutor
 		if(sender.hasPermission(perm))return false;
 		sender.sendMessage(cm.color(config.getString("message.cmd.noperm", Messages.DEFAULT_CMD_NOPERM)));
 		return true;
+	}
+
+	private class CmdDesc 
+	{
+		private String cmd;
+		private String desc;
+		private String perm;
+		private CmdDesc(String cmd, String desc, String perm)
+		{
+			this.cmd = cmd;
+			this.desc = desc;
+			this.perm = perm;
+		}
+		public String asDef()
+		{
+			return def(cmd, desc);
+		}
+		public String getPerm()
+		{
+			return perm;
+		}
 	}
 }
