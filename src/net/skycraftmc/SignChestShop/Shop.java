@@ -1,7 +1,11 @@
 package net.skycraftmc.SignChestShop;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 import net.minecraft.server.v1_7_R1.NBTBase;
 import net.minecraft.server.v1_7_R1.NBTTagCompound;
@@ -23,10 +27,10 @@ import org.bukkit.inventory.ItemStack;
 public class Shop 
 {
 	NBTTagCompound data;
-	ArrayList<InventoryView> transactions = new ArrayList<InventoryView>();
+	HashSet<InventoryView> transactions = new HashSet<InventoryView>();
 	HashMap<InventoryView, Double>price = new HashMap<InventoryView, Double>();
-	ArrayList<InventoryView> edit = new ArrayList<InventoryView>();
-	ArrayList<InventoryView> storage = new ArrayList<InventoryView>();
+	HashSet<InventoryView> edit = new HashSet<InventoryView>();
+	HashSet<InventoryView> storage = new HashSet<InventoryView>();
 	Inventory storageinv;
 	Shop(NBTTagCompound data)
 	{
@@ -275,6 +279,24 @@ public class Shop
 			list.add(i == null ? new NBTTagCompound() : CraftItemStack.asNMSCopy(i).save(new NBTTagCompound()));
 		}
 		data.set("storage", list);
+	}
+	
+	@SuppressWarnings("unchecked")
+	protected void finishEverything()
+	{
+		finishData();
+		ArrayList<Set<InventoryView>> lists = 
+				new ArrayList<Set<InventoryView>>();
+		lists.addAll(Arrays.asList(transactions, edit, storage, price.keySet()));
+		Iterator<InventoryView> it;
+		for(Set<InventoryView> l:lists)
+		{
+			for(it = l.iterator(); it.hasNext();)
+			{
+				it.next().close();
+				it.remove();
+			}
+		}
 	}
 	
 	/**

@@ -174,15 +174,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		if(!f.exists())f.mkdir();
 		for(Shop s: shops)
 		{
-			s.finishData();
-			for(InventoryView i: s.transactions)i.close();
-			for(InventoryView i: s.edit)i.close();
-			for(InventoryView i: s.price.keySet())i.close();
-			for(InventoryView i: s.storage)i.close();
-			s.transactions.clear();
-			s.edit.clear();
-			s.price.clear();
-			s.storage.clear();
+			s.finishEverything();
 		}
 		for(Map.Entry<InventoryView, Block>k:create.entrySet())k.getKey().close();
 		create.clear();
@@ -211,6 +203,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		}
 		initsuccess = false;
 	}
+	
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void interact(PlayerInteractEvent event)
 	{
@@ -241,6 +234,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		}
 		shop.open(event.getPlayer());
 	}
+	
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void close(InventoryCloseEvent event)
 	{
@@ -343,6 +337,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			shp.storage.remove(event.getView());
 		}
 	}
+	
 	@EventHandler
 	@SuppressWarnings("deprecation")
 	public void click(InventoryClickEvent event)
