@@ -2,6 +2,10 @@ package net.skycraftmc.SignChestShop;
 
 import java.io.IOException;
 import java.util.logging.Level;
+import java.util.regex.Matcher;
+
+import net.skycraftmc.SignChestShop.Shop.ShopMode;
+import net.skycraftmc.SignChestShop.SignChestShopPlugin.DKey;
 
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -30,6 +34,8 @@ public class ConfigManager
 			config.insertComment(" <curname> - the currency name, singular or plural, depending on the actual price");
 			config.insertComment(" <curnameplur> - the plural form of the currency name");
 			config.insertComment(" <curnamesing> - the singular form of the currency name");
+			config.insertComment(" <mode> - the mode of the shop");
+			config.insertComment(" <modeexp> - the phrase following the mode (example: \"from\" in \"Buy from\"");
 			config.writeLine();
 			config.insertComment("Text used to display the price of an item (use <price> for the price)");
 			config.writeKey("shop.price.text", Options.DEFAULT_PRICE_TEXT);
@@ -42,6 +48,15 @@ public class ConfigManager
 			config.insertComment("<price> when there is more than one item, but they are worth some amount");
 			config.insertComment(" Use <rawprice> for the cost of one item and <totalprice> for the total cost");
 			config.writeKey("shop.price.costmulti", Options.DEFAULT_PRICE_COSTMULTI);
+			config.writeLine();
+			config.insertComment("Default title of an unowned and untitled shop");
+			config.writeKey("shop.title.default", Options.DEFAULT_SHOP_TITLE_DEFAULT);
+			config.insertComment("Default title of an owned shop");
+			config.writeKey("shop.title.owned", Options.DEFAULT_SHOP_TITLE_OWNED);
+			config.insertComment("Default title of an unowned and titled shop");
+			config.writeKey("shop.title.titled", Options.DEFAULT_SHOP_TITLE_TITLED);
+			config.insertComment("Default title of an owned and titled shop");
+			config.writeKey("shop.title.titledowned", Options.DEFAULT_SHOP_TITLE_OWNED_TITLED);
 			config.writeLine();
 			config.insertComment("Enable this to force signs to be empty on creation; ignores shop variables");
 			config.writeKey("shop.forceempty", Options.DEFAULT_SHOP_FORCEEMPTY);
@@ -66,6 +81,10 @@ public class ConfigManager
 			config.writeKey("buy.perms", "" + Options.DEFAULT_BUY_PERMS);
 			config.insertComment("Enable this to require players to have \"scs.buy.<id>\" in order to let them buy items with the id");
 			config.writeKey("buy.permsid", "" + Options.DEFAULT_BUY_PERMSID);
+			config.insertComment("The name of this mode when used as a <mode> variable");
+			config.writeKey("buy.modename", Options.DEFAULT_BUY_MODENAME);
+			config.insertComment("The <modeexp> variable of the buy mode (see shop option variable section above)");
+			config.writeKey("buy.modeexp", Options.DEFAULT_BUY_MODEEXP);
 			config.writeLine();
 			config.insertComment("==== Selling Options ====#");
 			config.writeLine();
@@ -73,6 +92,10 @@ public class ConfigManager
 			config.writeKey("sell.perms", "" + Options.DEFAULT_SELL_PERMS);
 			config.insertComment("Enable this to require players to have \"scs.sell.<id>\" in order to let them sell items with the id");
 			config.writeKey("sell.permsid", "" + Options.DEFAULT_SELL_PERMSID);
+			config.insertComment("The name of this mode when used as a <mode> variable");
+			config.writeKey("sell.modename", Options.DEFAULT_SELL_MODENAME);
+			config.insertComment("The <modeexp> variable of the sell mode (see shop option variable section above)");
+			config.writeKey("sell.modeexp", Options.DEFAULT_SELL_MODEEXP);
 			config.writeLine();
 			config.insertComment("==== Messages ====#");
 			config.writeLine();
@@ -204,10 +227,50 @@ public class ConfigManager
 	
 	String varShop(String s, Shop shop)
 	{
+		return varShop0(s, shop, shop.getOwner(), shop.getTitle());
+	}
+	
+	private String varShop0(String s, Shop shop, String owner, String title)
+	{
 		String a = var(s);
-		a.replaceAll("<owner>", shop.getOwner() == null ? "" : shop.getOwner());
-		a.replaceAll("<title>", shop.getTitle() == null ? "" : shop.getTitle());
+		a = a.replaceAll("<owner>", owner == null ? "" : owner);
+		a = a.replaceAll("<title>", title == null ? "" : title);
+		ShopMode mode = shop.getMode();
+		a = a.replaceAll("<mode>", mode.name().toLowerCase());
+		if(mode == ShopMode.BUY)
+			a = a.replaceAll("<modeexp>", 
+				config.getString("buy.modeexp", Options.DEFAULT_BUY_MODEEXP));
+		else if(mode == ShopMode.SELL)
+			a = a.replaceAll("<modeexp>", 
+				config.getString("sell.modeexp", Options.DEFAULT_SELL_MODEEXP));
 		return a;
+	}
+	
+	String doShopTitle(Shop shop)
+	{
+		String owner = shop.getOwner();
+		String title = shop.getTitle();
+		DKey<String, String> a;
+		String fin;
+		if(owner == null && title == null)
+			a = new DKey<String, String>("shop.title.default",
+				Options.DEFAULT_SHOP_TITLE_DEFAULT);
+		else if(owner != null && title == null)
+			a = new DKey<String, String>("shop.title.owned", 
+				Options.DEFAULT_SHOP_TITLE_OWNED);
+		else if(title != null && owner == null)
+			a = new DKey<String, String>("shop.title.titled", 
+					Options.DEFAULT_SHOP_TITLE_TITLED);
+		else a = new DKey<String, String>("shop.title.titledowned",
+				Options.DEFAULT_SHOP_TITLE_OWNED_TITLED);
+		fin = config.getString(a.a, a.b);
+		if(fin.startsWith("<mode>"))
+		{
+			String mode = shop.getMode().name().toLowerCase();
+			fin = fin.replaceFirst("<mode>", Character.toUpperCase(mode.charAt(0)) + 
+				mode.substring(1));
+		}
+		return varShop0(fin, shop, owner, title);
 	}
 	
 	String varPlayer(String s, Player player)
@@ -217,7 +280,7 @@ public class ConfigManager
 	
 	String var(String s)
 	{
-		String a = color(s);
+		String a = color(Matcher.quoteReplacement(s));
 		a = a.replaceAll("<curnameplur>", plugin.econ.currencyNamePlural());
 		a = a.replaceAll("<curnamesing>", plugin.econ.currencyNameSingular());
 		return a;

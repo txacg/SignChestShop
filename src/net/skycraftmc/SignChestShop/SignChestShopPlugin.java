@@ -831,7 +831,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		return null;
 	}
 	
-	private class DKey<V, O>
+	static class DKey<V, O>
 	{
 		V a;
 		O b;

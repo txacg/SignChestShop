@@ -32,6 +32,7 @@ public class Shop
 	HashSet<InventoryView> edit = new HashSet<InventoryView>();
 	HashSet<InventoryView> storage = new HashSet<InventoryView>();
 	Inventory storageinv;
+	private SignChestShopPlugin scs;
 	Shop(NBTTagCompound data)
 	{
 		if(!data.hasKey("x") || !data.hasKey("y") || !data.hasKey("z") || !data.hasKey("world") ||
@@ -39,6 +40,7 @@ public class Shop
 			throw new IllegalArgumentException("Invalid shop data");
 		this.data = data;
 		storageinv = new CraftInventoryCustom(null, 27, "Storage");
+		scs = SignChestShopPlugin.inst;
 	}
 	
 	/**
@@ -136,9 +138,9 @@ public class Shop
 		net.minecraft.server.v1_7_R1.ItemStack item = 
 			net.minecraft.server.v1_7_R1.ItemStack.createStack(tag);
 		if(withPriceText)
-			SignChestShopPlugin.inst.addPrice(item);
+			scs.addPrice(item);
 		else if(item.tag != null)
-			SignChestShopPlugin.inst.stripSCSData(item, false);
+			scs.stripSCSData(item, false);
 		return CraftItemStack.asCraftMirror(item);
 	}
 	
@@ -323,17 +325,8 @@ public class Shop
 	 */
 	public InventoryView open(Player player)
 	{
-		int m = getMode().ID;
-		boolean b = m == 0;
-		String ftitle = null;
-		String title = getTitle();
-		if(title == null)
-		{
-			String ostring = getOwner() != null ? " " + (b ? "from" : "to") + " " + getOwner() : "";
-			ftitle = (b ? "Buy" : "Sell") + ostring;
-		}
-		else ftitle = title;
-		Inventory i = SignChestShopPlugin.inst.getShop(data, true, ftitle);
+		String title = scs.cm.doShopTitle(this);
+		Inventory i = scs.getShop(data, true, title.length() > 32 ? title.substring(0, 32) : title);
 		InventoryView iv = player.openInventory(i);
 		transactions.add(iv);
 		return iv;
