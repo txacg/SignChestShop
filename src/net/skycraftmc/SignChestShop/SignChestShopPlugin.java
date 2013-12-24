@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.xml.stream.XMLStreamException;
@@ -99,33 +100,15 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		data = new NBTTagCompound();
 		if(dat.exists())
 		{
-			boolean c = false;
-			Exception e = null;
 			try
 			{
 				DataInputStream dis = new DataInputStream(new FileInputStream(dat));
 				load(dis);
 				dis.close();
 			}
-			catch (Exception e2)
+			catch (Exception e)
 			{
-				e = e2;
-				c = true;
-			}
-			if(c)
-			{
-				try
-				{
-					loadOld(dat);
-					log.info("Converted old SignChestShopData");
-				}
-				catch(Exception ea)
-				{
-					log.warning("Failed to load data!");
-					e.printStackTrace();
-					log.warning("Failed to convert data!");
-					ea.printStackTrace();
-				}
+				log.log(Level.WARNING, "Failed to load data", e);
 			}
 		}
 		else data.set("Shops", new NBTTagList());
@@ -883,14 +866,6 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		Method m = NBTCompressedStreamTools.class.getDeclaredMethod("a", DataInput.class, int.class);
 		m.setAccessible(true);
 		data = (NBTTagCompound) m.invoke(null, s, 0);
-	}
-	
-	private void loadOld(File dat)throws Exception
-	{
-		DataInputStream dis = new DataInputStream(new FileInputStream(dat));
-		Method m = NBTTagCompound.class.getDeclaredMethod("load", DataInput.class, int.class);
-		m.setAccessible(true);
-		m.invoke(data, dis, 0);
 	}
 	
 	private void buildShops()
