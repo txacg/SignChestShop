@@ -1,6 +1,6 @@
 name: SignChestShop
 main: net.skycraftmc.SignChestShop.SignChestShopPlugin
-version: 1.3-beta4
+version: 1.3
 author: Technius
 depend: [Vault]
 commands:
