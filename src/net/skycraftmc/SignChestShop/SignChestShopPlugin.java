@@ -554,7 +554,8 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					net.minecraft.server.v1_7_R1.ItemStack nms = nmsStack(i);
 					stripSCSData(nms);
 					final ItemStack ui = CraftItemStack.asCraftMirror(nms);
-					event.setCurrentItem(ui);
+					if(sclick) event.setCurrentItem(ui);
+					else player.setItemOnCursor(ui);
 					final Player runnablePlayer = player;
 					getServer().getScheduler().scheduleSyncDelayedTask(this,
 						new Runnable()
