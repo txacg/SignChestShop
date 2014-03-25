@@ -283,7 +283,6 @@ public class Shop
 		data.set("storage", list);
 	}
 	
-	@SuppressWarnings("unchecked")
 	protected void finishEverything()
 	{
 		finishData();
