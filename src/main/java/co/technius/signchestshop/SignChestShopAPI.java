@@ -1,7 +1,7 @@
 package co.technius.signchestshop;
 
-import net.minecraft.server.v1_7_R1.NBTTagCompound;
-import net.minecraft.server.v1_7_R1.NBTTagList;
+import net.minecraft.server.v1_7_R2.NBTTagCompound;
+import net.minecraft.server.v1_7_R2.NBTTagList;
 
 import org.bukkit.Location;
 import org.bukkit.block.Block;
