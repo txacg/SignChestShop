@@ -1,4 +1,4 @@
-package co.technius.SignChestShop;
+package co.technius.signchestshop;
 
 public class Messages 
 {

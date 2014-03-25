@@ -1,4 +1,4 @@
-package co.technius.SignChestShop.util;
+package co.technius.signchestshop.util;
 
 public class UpdateInformation 
 {

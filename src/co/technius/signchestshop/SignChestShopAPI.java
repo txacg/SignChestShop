@@ -1,4 +1,4 @@
-package co.technius.SignChestShop;
+package co.technius.signchestshop;
 
 import net.minecraft.server.v1_7_R1.NBTTagCompound;
 import net.minecraft.server.v1_7_R1.NBTTagList;
@@ -9,7 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 
-import co.technius.SignChestShop.Shop.ShopMode;
+import co.technius.signchestshop.Shop.ShopMode;
 
 /**
  * This class contains API methods

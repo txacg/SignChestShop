@@ -1,4 +1,4 @@
-package co.technius.SignChestShop;
+package co.technius.signchestshop;
 
 import java.util.ArrayList;
 import java.util.Arrays;

@@ -1,4 +1,4 @@
-package co.technius.SignChestShop;
+package co.technius.signchestshop;
 
 import java.io.IOException;
 import java.util.logging.Level;
@@ -7,8 +7,8 @@ import java.util.regex.Matcher;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
-import co.technius.SignChestShop.Shop.ShopMode;
-import co.technius.SignChestShop.SignChestShopPlugin.DKey;
+import co.technius.signchestshop.Shop.ShopMode;
+import co.technius.signchestshop.SignChestShopPlugin.DKey;
 
 public class ConfigManager
 {

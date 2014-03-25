@@ -1,4 +1,4 @@
-package co.technius.SignChestShop;
+package co.technius.signchestshop;
 
 import java.io.BufferedReader;
 import java.io.File;

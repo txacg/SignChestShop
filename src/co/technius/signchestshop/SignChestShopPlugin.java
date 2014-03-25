@@ -1,4 +1,4 @@
-package co.technius.SignChestShop;
+package co.technius.signchestshop;
 
 import java.io.DataInput;
 import java.io.DataInputStream;
@@ -52,9 +52,9 @@ import org.bukkit.material.MaterialData;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import co.technius.SignChestShop.Shop.ShopMode;
-import co.technius.SignChestShop.util.UpdateInformation;
-import co.technius.SignChestShop.util.Updater;
+import co.technius.signchestshop.Shop.ShopMode;
+import co.technius.signchestshop.util.UpdateInformation;
+import co.technius.signchestshop.util.Updater;
 
 public class SignChestShopPlugin extends JavaPlugin implements Listener
 {

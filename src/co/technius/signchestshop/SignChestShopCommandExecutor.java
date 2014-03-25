@@ -1,4 +1,4 @@
-package co.technius.SignChestShop;
+package co.technius.signchestshop;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -16,7 +16,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 
-import co.technius.SignChestShop.Shop.ShopMode;
+import co.technius.signchestshop.Shop.ShopMode;
 
 public class SignChestShopCommandExecutor implements CommandExecutor
 {
