@@ -1,4 +1,4 @@
-package net.skycraftmc.SignChestShop;
+package co.technius.SignChestShop;
 
 import java.io.BufferedReader;
 import java.io.File;

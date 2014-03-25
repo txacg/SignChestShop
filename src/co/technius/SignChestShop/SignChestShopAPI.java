@@ -1,14 +1,15 @@
-package net.skycraftmc.SignChestShop;
+package co.technius.SignChestShop;
 
 import net.minecraft.server.v1_7_R1.NBTTagCompound;
 import net.minecraft.server.v1_7_R1.NBTTagList;
-import net.skycraftmc.SignChestShop.Shop.ShopMode;
 
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
+
+import co.technius.SignChestShop.Shop.ShopMode;
 
 /**
  * This class contains API methods

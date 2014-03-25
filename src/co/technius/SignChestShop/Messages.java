@@ -1,4 +1,4 @@
-package net.skycraftmc.SignChestShop;
+package co.technius.SignChestShop;
 
 public class Messages 
 {

@@ -1,4 +1,4 @@
-package net.skycraftmc.SignChestShop.util;
+package co.technius.SignChestShop.util;
 
 public class UpdateInformation 
 {

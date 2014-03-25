@@ -1,11 +1,10 @@
-package net.skycraftmc.SignChestShop;
+package co.technius.SignChestShop;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 
 import net.minecraft.server.v1_7_R1.NBTTagCompound;
-import net.skycraftmc.SignChestShop.Shop.ShopMode;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -16,6 +15,8 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+
+import co.technius.SignChestShop.Shop.ShopMode;
 
 public class SignChestShopCommandExecutor implements CommandExecutor
 {

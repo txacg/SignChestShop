@@ -1,14 +1,14 @@
-package net.skycraftmc.SignChestShop;
+package co.technius.SignChestShop;
 
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 
-import net.skycraftmc.SignChestShop.Shop.ShopMode;
-import net.skycraftmc.SignChestShop.SignChestShopPlugin.DKey;
-
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+
+import co.technius.SignChestShop.Shop.ShopMode;
+import co.technius.SignChestShop.SignChestShopPlugin.DKey;
 
 public class ConfigManager
 {

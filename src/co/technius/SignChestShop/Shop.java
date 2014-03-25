@@ -1,4 +1,4 @@
-package net.skycraftmc.SignChestShop;
+package co.technius.SignChestShop;
 
 import java.util.ArrayList;
 import java.util.Arrays;

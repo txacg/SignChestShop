@@ -1,4 +1,4 @@
-package net.skycraftmc.SignChestShop;
+package co.technius.SignChestShop;
 
 import java.io.DataInput;
 import java.io.DataInputStream;
@@ -24,9 +24,6 @@ import net.minecraft.server.v1_7_R1.NBTCompressedStreamTools;
 import net.minecraft.server.v1_7_R1.NBTTagCompound;
 import net.minecraft.server.v1_7_R1.NBTTagList;
 import net.minecraft.server.v1_7_R1.NBTTagString;
-import net.skycraftmc.SignChestShop.Shop.ShopMode;
-import net.skycraftmc.SignChestShop.util.UpdateInformation;
-import net.skycraftmc.SignChestShop.util.Updater;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -54,6 +51,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.material.MaterialData;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import co.technius.SignChestShop.Shop.ShopMode;
+import co.technius.SignChestShop.util.UpdateInformation;
+import co.technius.SignChestShop.util.Updater;
 
 public class SignChestShopPlugin extends JavaPlugin implements Listener
 {
