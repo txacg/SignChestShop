@@ -244,7 +244,7 @@ public class SignChestShopCommandExecutor implements CommandExecutor
 	private Shop checkTarget(CommandSender sender, String perm, int argmin, int argmax, int argc, String usage)
 	{
 		//TODO Find alternative to getTargetBlock
-		if(noPerm(sender, "scs.admin"))return null;
+		if(noPerm(sender, perm))return null;
 		if(noConsole(sender))return null;
 		if(argc < argmin || argc > argmax)
 		{
