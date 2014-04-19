@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 
-import net.minecraft.server.v1_7_R2.NBTTagCompound;
+import net.minecraft.server.v1_7_R3.NBTTagCompound;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -191,9 +191,11 @@ public class SignChestShopCommandExecutor implements CommandExecutor
 					return true;
 				if(args[1].equalsIgnoreCase("none"))
 				{
-					s.setOwner(null);
+					//TODO Use alternative if available
+					s.setOwner((String) null);
 					return msg(sender, ChatColor.GREEN + "This shop no longer has an owner.");
 				}
+				//TODO Use alternative if available
 				s.setOwner(args[1]);
 				return msg(sender, ChatColor.GREEN + "The owner of this shop has been set to \"" + args[1] + "\"");
 			}
@@ -267,7 +269,7 @@ public class SignChestShopCommandExecutor implements CommandExecutor
 
 	private boolean checkOwner(Player player, Shop shop, String perm)
 	{
-		if(!player.hasPermission(perm) && !player.getName().equals(shop.getOwner()))
+		if(!player.hasPermission(perm) && !player.getUniqueId().equals(shop.getOwner()))
 			return msg(player, cm.varPlayer(config.getString("message.cmd.notowned", Messages.DEFAULT_CMD_NOTOWNED), player));
 		return false;
 	}

@@ -6,16 +6,17 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.UUID;
 
-import net.minecraft.server.v1_7_R2.NBTBase;
-import net.minecraft.server.v1_7_R2.NBTTagCompound;
-import net.minecraft.server.v1_7_R2.NBTTagList;
+import net.minecraft.server.v1_7_R3.NBTBase;
+import net.minecraft.server.v1_7_R3.NBTTagCompound;
+import net.minecraft.server.v1_7_R3.NBTTagList;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_7_R2.inventory.CraftInventoryCustom;
-import org.bukkit.craftbukkit.v1_7_R2.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_7_R3.inventory.CraftInventoryCustom;
+import org.bukkit.craftbukkit.v1_7_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
@@ -32,6 +33,7 @@ public class Shop
 	HashSet<InventoryView> edit = new HashSet<InventoryView>();
 	HashSet<InventoryView> storage = new HashSet<InventoryView>();
 	Inventory storageinv;
+	UUID owner;
 	private SignChestShopPlugin scs;
 	Shop(NBTTagCompound data)
 	{
@@ -110,17 +112,17 @@ public class Shop
 		{
 			NBTTagCompound c = (NBTTagCompound) ilist.get(a);
 			if(c.c().size() == 0)i[a] = null;
-			else i[a] = CraftItemStack.asCraftMirror((net.minecraft.server.v1_7_R2.ItemStack.createStack(c)));
+			else i[a] = CraftItemStack.asCraftMirror((net.minecraft.server.v1_7_R3.ItemStack.createStack(c)));
 		}
 		return i;
 	}
 	
-	net.minecraft.server.v1_7_R2.ItemStack getRawItem(int index)
+	net.minecraft.server.v1_7_R3.ItemStack getRawItem(int index)
 	{
 		NBTTagList ilist = data.getList("items", 10);
 		if(index >= ilist.size() || index < 0)
 			return null;
-		return net.minecraft.server.v1_7_R2.ItemStack.createStack(ilist.get(index));
+		return net.minecraft.server.v1_7_R3.ItemStack.createStack(ilist.get(index));
 	}
 	
 	/**
@@ -135,8 +137,8 @@ public class Shop
 		if(index >= ilist.size() || index < 0)
 			return null;
 		NBTTagCompound tag = ilist.get(index);
-		net.minecraft.server.v1_7_R2.ItemStack item = 
-			net.minecraft.server.v1_7_R2.ItemStack.createStack(tag);
+		net.minecraft.server.v1_7_R3.ItemStack item = 
+			net.minecraft.server.v1_7_R3.ItemStack.createStack(tag);
 		if(withPriceText)
 			scs.addPrice(item);
 		else if(item.tag != null)
@@ -205,7 +207,7 @@ public class Shop
 		setItem(index, CraftItemStack.asNMSCopy(item), retainPrice);
 	}
 	
-	protected void setItem(int index, net.minecraft.server.v1_7_R2.ItemStack item, boolean retainPrice)
+	protected void setItem(int index, net.minecraft.server.v1_7_R3.ItemStack item, boolean retainPrice)
 	{
 		NBTTagList ilist = data.getList("items", 10);
 		if(index >= ilist.size() || index < 0)
@@ -219,7 +221,7 @@ public class Shop
 		setItem(old, item, retainPrice);
 	}
 	
-	protected void setItem(NBTTagCompound old, net.minecraft.server.v1_7_R2.ItemStack nms, boolean retainPrice)
+	protected void setItem(NBTTagCompound old, net.minecraft.server.v1_7_R3.ItemStack nms, boolean retainPrice)
 	{
 		NBTTagCompound c = new NBTTagCompound();
 		nms.save(c);
@@ -269,7 +271,7 @@ public class Shop
 		for(int i = 0; i < l.size(); i ++)
 		{
 			storageinv.setItem(i, CraftItemStack.asCraftMirror(
-					net.minecraft.server.v1_7_R2.ItemStack.createStack((NBTTagCompound) l.get(i))));
+					net.minecraft.server.v1_7_R3.ItemStack.createStack((NBTTagCompound) l.get(i))));
 		}
 	}
 	
@@ -355,23 +357,39 @@ public class Shop
 	}
 	
 	/**
-	 * @return The owner of this shop, or null if this shop has no owner.
+	 * @return The UUID of the owner of this shop, or null if this shop has no owner.
 	 */
-	public String getOwner()
+	public UUID getOwner()
 	{
-		if(!data.hasKey("owner"))return null;
-		return data.getString("owner");
+		return owner;
+	}
+	
+	/**
+	 * @return The name of the owner of this shop, or null if this shop has no owner.
+	 * This method is a blocking method.
+	 */
+	public String getOwnerName()
+	{
+		if(owner == null)return null;
+		return Bukkit.getServer().getOfflinePlayer(owner).getName();
 	}
 	
 	/**
 	 * Sets the owner of this shop.
 	 * @param owner - The new owner of this shop, or null to remove the owner.
+	 * @deprecated This operation will call a UUID conversion.  Use {@link #setOwner(UUID)} instead.
 	 */
 	public void setOwner(String owner)
 	{
 		if(owner == null)
 			data.remove("owner");
 		else data.setString("owner", owner);
+		update();
+	}
+	
+	public void setOwner(UUID owner)
+	{
+		this.owner = owner;
 		update();
 	}
 	

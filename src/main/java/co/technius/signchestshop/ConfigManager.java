@@ -227,7 +227,7 @@ public class ConfigManager
 	
 	String varShop(String s, Shop shop)
 	{
-		return varShop0(s, shop, shop.getOwner(), shop.getTitle());
+		return varShop0(s, shop, shop.getOwnerName(), shop.getTitle());
 	}
 	
 	private String varShop0(String s, Shop shop, String owner, String title)
@@ -248,7 +248,7 @@ public class ConfigManager
 	
 	String doShopTitle(Shop shop)
 	{
-		String owner = shop.getOwner();
+		String owner = shop.getOwnerName();
 		String title = shop.getTitle();
 		DKey<String, String> a;
 		String fin;
