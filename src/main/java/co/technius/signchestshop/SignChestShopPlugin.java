@@ -1,6 +1,5 @@
 package co.technius.signchestshop;
 
-import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
@@ -855,7 +854,8 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 	
 	private void integCheck()
 	{	
-		final HashMap<String, NBTTagCompound> requireConversion = new HashMap<String, NBTTagCompound>();
+		final HashMap<String, ArrayList<NBTTagCompound>> requireConversion = 
+			new HashMap<String, ArrayList<NBTTagCompound>>();
 		NBTTagList shops = data.getList("Shops", 10);
 		for(int i = 0; i < shops.size(); i ++)
 		{
@@ -864,47 +864,71 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 			if(!a.hasKey("mode"))a.setInt("mode", ShopMode.BUY.ID);
 			if(!a.hasKey("storage"))a.set("storage", new NBTTagList());
 			if(a.hasKey("owner") && (!a.hasKey("ownerUUIDMost") || !a.hasKey("ownerUUIDLeast")))
-				requireConversion.put(a.getString("owner"), a);
+			{
+				String o = a.getString("owner");
+				ArrayList<NBTTagCompound> shopList = requireConversion.get("owner");
+				if(shopList == null)
+					requireConversion.put(o, (shopList = new ArrayList<NBTTagCompound>()));
+				shopList.add(a);
+			}
 		}
 		
 		if(!data.hasKey("usingUUID"))
 		{
-			getLogger().info("Converting names to UUIDs...");
+			getLogger().info("Old file detected; converting names to UUIDs");
 			ExecutorService es = Executors.newFixedThreadPool(1);
-			Future<Boolean> f = es.submit(new Callable<Boolean>(){
-				public Boolean call()
+			Future<Integer> f = es.submit(new Callable<Integer>(){
+				public Integer call()
 				{
 					ArrayList<String> names = new ArrayList<String>();
 					names.addAll(requireConversion.keySet());
 					UUIDFetcher f = new UUIDFetcher(names);
 					try
 					{
+						getLogger().info("Fetching names from the Internet...");
 						Map<String, UUID> results = f.call();
+						getLogger().info("Fetch complete. Converting names...");
+						int total = 0;
 						for(String s: names)
 						{
 							UUID id = results.get(s);
-							NBTTagCompound t = requireConversion.get(s);
-							t.remove("owner");
-							t.setLong("ownerUUIDMost", id.getMostSignificantBits());
-							t.setLong("ownerUUIDLeast", id.getLeastSignificantBits());
+							long mid = id.getMostSignificantBits();
+							long lid = id.getLeastSignificantBits();
+							int c = 0;
+							for(NBTTagCompound t: requireConversion.get(s))
+							{
+								t.remove("owner");
+								t.setLong("ownerUUIDMost", mid);
+								t.setLong("ownerUUIDLeast", lid);
+								++c;
+							}
+							getLogger().info("Converted " + c + " shop(s) belonging to " + s);
+							total += c;
 						}
+						
+						return Integer.valueOf(total);
 					}
 					catch (Exception e)
 					{
 						getLogger().log(Level.WARNING, "Failed to convert names to UUID", e);
 						return null;
 					}
-					return Boolean.TRUE;
 				}
 			});
+			
+			Integer i = null;
 			try
 			{
-				f.get();
+				i = f.get();
 			}
 			catch (InterruptedException | ExecutionException e)
 			{
 				e.printStackTrace();
 			}
+			
+			es.shutdownNow();
+			data.setBoolean("usingUUID", true);
+			getLogger().info("Converted " + (i != null ? i.intValue() : 0) + " shops");
 		}
 	}
 	
@@ -917,9 +941,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 	
 	private void load(DataInputStream s) throws Exception
 	{
-		Method m = NBTCompressedStreamTools.class.getDeclaredMethod("a", DataInput.class, int.class);
-		m.setAccessible(true);
-		data = (NBTTagCompound) m.invoke(null, s, 0);
+		data = NBTCompressedStreamTools.a(s);
 	}
 	
 	private void buildShops()
