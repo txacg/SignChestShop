@@ -50,7 +50,7 @@ public class SignChestShopAPI
 	 * If you are trying to have a player start a transaction, use {@link #getShop(Block)} and then
 	 * call the shop object's {@link Shop#open(Player)} method.
 	 * @param block - The shop's location
-	 * @param showPrice - If items should get "Price: <price>" appended to their lore
+	 * @param showPrice - If items should get "Price: &lt;price&gt;" appended to their lore
 	 * @param title - The title of the shop
 	 * @return The inventory the player would see
 	 * @see #getShopInventory(Block, boolean)
@@ -67,7 +67,7 @@ public class SignChestShopAPI
 	 * call the shop object's {@link Shop#open(Player)} method.
 	 * This method has the same effect as calling getShopInventory(block, showPrice, "Buy")
 	 * @param block - The shop's location
-	 * @param showPrice - If items should get "Price: <price>" appended to their lore
+	 * @param showPrice - If items should get "Price: &lt;price&gt;" appended to their lore
 	 * @return The inventory the player would see
 	 * @see #getShopInventory(Block, boolean, String)
 	 */

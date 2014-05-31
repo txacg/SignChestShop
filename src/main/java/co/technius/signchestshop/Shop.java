@@ -316,6 +316,7 @@ public class Shop
 	
 	/**
 	 * Sets the {@link ShopMode} of this shop.
+	 * @param mode The mode of the shop
 	 */
 	public void setMode(ShopMode mode)
 	{
@@ -353,7 +354,7 @@ public class Shop
 	}
 	
 	/**
-	 * @return An array of all {@link org.bukkit.InventoryView}s currently open.
+	 * @return An array of all {@link org.bukkit.inventory.InventoryView}s currently open.
 	 */
 	public InventoryView[] getBrowsing()
 	{
