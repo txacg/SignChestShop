@@ -2,6 +2,9 @@ package co.technius.signchestshop;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.logging.Level;
 
 import net.minecraft.server.v1_7_R3.NBTTagCompound;
@@ -15,8 +18,10 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import co.technius.signchestshop.Shop.ShopMode;
+import co.technius.signchestshop.util.UUIDUtil;
 
 public class SignChestShopCommandExecutor implements CommandExecutor
 {
@@ -36,6 +41,7 @@ public class SignChestShopCommandExecutor implements CommandExecutor
 		new CmdDesc("scs break", "Deletes a shop", "scs.create"),
 		new CmdDesc("scs price", "Prices items in a shop", "scs.create"),
 		new CmdDesc("scs edit", "Edits a shop", "scs.create"),
+		new CmdDesc("scs info", "Shows shop information", null),
 		new CmdDesc("scs setmode <mode>", "Sets the mode of a shop", "scs.create"),
 		new CmdDesc("scs storage", "Accesses a shop's storage", "scs.create"),
 		new CmdDesc("scs settitle <name>", "Sets the title of a shop", "scs.create"),
@@ -46,7 +52,7 @@ public class SignChestShopCommandExecutor implements CommandExecutor
 	};
 
 	@SuppressWarnings("deprecation")
-	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)
+	public boolean onCommand(final CommandSender sender, Command cmd, String label, final String[] args)
 	{
 		if(args.length >= 1)
 		{
@@ -97,16 +103,10 @@ public class SignChestShopCommandExecutor implements CommandExecutor
 			}
 			else if(args[0].equalsIgnoreCase("price"))
 			{
-				if(noPerm(sender, "scs.create"))return true;
-				if(noConsole(sender))return true;
-				if(args.length != 2)return msg(sender, ChatColor.RED + "Usage: /scs price <price>");
+				Shop s = checkTarget(sender, "scs.create", 2, 2, args.length, "scs price <price>");
+				if (s == null) return true;
 				Player player = (Player)sender;
-				Block b = player.getTargetBlock(null, 5);
-				if(b == null)return msg(sender, cm.varPlayer(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
-				NBTTagCompound s = plugin.getShopData(b);
-				if(s == null)
-					return msg(sender, cm.varPlayer(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
-				if(checkOwner(player, plugin.getShopObject(s), "scs.bypass.price"))return true;
+				if(checkOwner(player, s, "scs.bypass.price"))return true;
 				double price;
 				if(args[1].equalsIgnoreCase("free"))price = 0;
 				else if(args[1].equalsIgnoreCase("display"))price = -1;
@@ -124,22 +124,29 @@ public class SignChestShopCommandExecutor implements CommandExecutor
 								"\"" + args[1] + "\" is not a valid number.");
 					}
 				}
-				Inventory i = plugin.getShop(s, true, "Price");
-				plugin.getShop(b).price.put(player.openInventory(i), price);
+				Inventory i = plugin.getShop(s.data, true, "Price");
+				s.price.put(player.openInventory(i), price);
 			}
 			else if(args[0].equalsIgnoreCase("edit"))
 			{
-				if(noPerm(sender, "scs.create"))return true;
-				if(noConsole(sender))return true;
+				Shop s = checkTarget(sender, "scs.create", 1, 1, args.length, "scs edit");
+				if (s == null) return true;
 				Player player = (Player)sender;
-				Block b = player.getTargetBlock(null, 5);
-				if(b == null)return msg(sender, cm.varPlayer(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
-				NBTTagCompound s = plugin.getShopData(b);
-				if(s == null)
-					return msg(sender, cm.varPlayer(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
-				if(checkOwner(player, plugin.getShopObject(s), "scs.bypass.edit"))return true;
-				Inventory i = plugin.getShop(s, false, "Edit");
-				plugin.getShop(b).edit.add(player.openInventory(i));
+				if (checkOwner(player, s, "scs.bypass.edit")) return true;
+				Inventory i = plugin.getShop(s.data, false, "Edit");
+				s.edit.add(player.openInventory(i));
+			}
+			else if(args[0].equalsIgnoreCase("info"))
+			{
+				Shop s = checkTarget(sender, null, 1, 1, args.length, "scs info");
+				if (s != null)
+				{
+					String o = s.getOwnerName();
+					msg(sender, ChatColor.AQUA + "Shop Information" + (s.getTitle() != null ? ": " + ChatColor.GOLD + s.getTitle() : ""));
+					if (o != null) msg(sender, ChatColor.AQUA + "Owner: " + ChatColor.GOLD + o);
+					msg(sender, ChatColor.AQUA + "Mode: " + ChatColor.GOLD + s.getMode().toString().toLowerCase());
+					msg(sender, ChatColor.AQUA + "Runs out of stock: " + ChatColor.GOLD + (s.isLimited() ? "Yes" : "No"));
+				}
 			}
 			else if(args[0].equalsIgnoreCase("reload"))
 			{
@@ -186,18 +193,44 @@ public class SignChestShopCommandExecutor implements CommandExecutor
 			}
 			else if(args[0].equalsIgnoreCase("setowner"))
 			{
-				Shop s = checkTarget(sender, "scs.admin", 2, 2, args.length, "scs setowner <name>");
+				final Shop s = checkTarget(sender, "scs.admin", 2, 2, args.length, "scs setowner <name>");
 				if(s == null)
 					return true;
 				if(args[1].equalsIgnoreCase("none"))
 				{
-					//TODO Use alternative if available
-					s.setOwner((String) null);
+					s.setOwner((UUID) null);
 					return msg(sender, ChatColor.GREEN + "This shop no longer has an owner.");
 				}
-				//TODO Use alternative if available
-				s.setOwner(args[1]);
-				return msg(sender, ChatColor.GREEN + "The owner of this shop has been set to \"" + args[1] + "\"");
+				final Future<UUID> f = UUIDUtil.getUUID(args[1]);
+				new BukkitRunnable() {
+					public void run() 
+					{
+						if (f.isDone())
+						{
+							cancel();
+							try
+							{
+								UUID id = f.get();
+								if (id == null)
+								{
+									msg(sender, ChatColor.RED + "\"" + args[1] + "\" is not an actual player.");
+								}
+								else
+								{
+									s.setOwner(id);
+									msg(sender, ChatColor.GREEN + "The owner of this shop has been set to \"" + args[1] + "\"");
+								}
+							}
+							catch (InterruptedException | ExecutionException e)
+							{
+								e.printStackTrace();
+								msg(sender, ChatColor.RED + "The player \"" + args[1] + "\" could not be found.");
+								return;
+							}
+						}
+					}
+				}.runTaskTimer(plugin, 0, 1);
+				return true;
 			}
 			else if(args[0].equalsIgnoreCase("setlimited"))
 			{
@@ -330,7 +363,7 @@ public class SignChestShopCommandExecutor implements CommandExecutor
 
 	private boolean noPerm(CommandSender sender, String perm)
 	{
-		if(sender.hasPermission(perm))return false;
+		if(perm == null || sender.hasPermission(perm))return false;
 		sender.sendMessage(cm.color(config.getString("message.cmd.noperm", Messages.DEFAULT_CMD_NOPERM)));
 		return true;
 	}

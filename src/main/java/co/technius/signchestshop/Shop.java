@@ -7,6 +7,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import net.minecraft.server.v1_7_R3.NBTBase;
 import net.minecraft.server.v1_7_R3.NBTTagCompound;
@@ -21,6 +23,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
+
+import co.technius.signchestshop.util.UUIDUtil;
 
 /**
  * Represents a SignChestShop.
@@ -377,19 +381,44 @@ public class Shop
 	/**
 	 * Sets the owner of this shop.
 	 * @param owner - The new owner of this shop, or null to remove the owner.
-	 * @deprecated This operation will call a UUID conversion.  Use {@link #setOwner(UUID)} instead.
+	 * @deprecated This operation will call a blocking UUID conversion. 
+	 * Use {@link #setOwner(UUID)} and {@link UUIDUtil#getUUID(String)} instead.
 	 */
 	public void setOwner(String owner)
 	{
-		if(owner == null)
-			data.remove("owner");
-		else data.setString("owner", owner);
-		update();
+		UUID id = null;
+		if(owner != null)
+		{
+			Future<UUID> f = UUIDUtil.getUUID(owner);
+			try
+			{
+				id = f.get();
+			}
+			catch (InterruptedException | ExecutionException e)
+			{
+				e.printStackTrace();
+			}
+		}
+		setOwner(id);
 	}
 	
+	/**
+	 * Sets the owner of this shop.
+	 * @param owner - The new owner of this shop, or null to remove the owner.
+	 */
 	public void setOwner(UUID owner)
 	{
 		this.owner = owner;
+		if (owner == null)
+		{
+			data.remove("ownerUUIDMost");
+			data.remove("ownerUUIDLeast");
+		}
+		else
+		{
+			data.setLong("ownerUUIDMost", owner.getMostSignificantBits());
+			data.setLong("ownerUUIDLeast", owner.getLeastSignificantBits());
+		}
 		update();
 	}
 	

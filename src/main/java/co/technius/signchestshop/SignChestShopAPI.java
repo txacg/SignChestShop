@@ -58,8 +58,7 @@ public class SignChestShopAPI
 	public Inventory getShopInventory(Block block, boolean showPrice, String title)
 	{
 		NBTTagCompound c = plugin.getShopData(block);
-		if(c == null)return null;
-		return plugin.getShop(c, showPrice, title);
+		return c == null ? null : plugin.getShop(c, showPrice, title);
 	}
 	
 	/**
@@ -91,8 +90,7 @@ public class SignChestShopAPI
 	{
 		Shop s = getShop(block);
 		if(s == null)return null;
-		if(s.getMode() != ShopMode.BUY)return null;
-		return s.open(player);
+		return s.getMode() != ShopMode.BUY ? null : s.open(player);
 	}
 	
 	/**
@@ -104,10 +102,7 @@ public class SignChestShopAPI
 		NBTTagList shops = plugin.data.getList("Shops", 10);
 		Shop[] a = new Shop[shops.size()];
 		for(int i = 0; i < shops.size(); i ++)
-		{
-			NBTTagCompound s = (NBTTagCompound)shops.get(i);
-			a[i] = new Shop(s);
-		}
+			a[i] = new Shop((NBTTagCompound)shops.get(i));
 		return a;
 	}
 }
