@@ -277,6 +277,8 @@ public class Shop
 			storageinv.setItem(i, CraftItemStack.asCraftMirror(
 					net.minecraft.server.v1_7_R3.ItemStack.createStack((NBTTagCompound) l.get(i))));
 		}
+		if (data.hasKey("ownerUUIDMost") && data.hasKey("ownerUUIDLeast"))
+			owner = new UUID(data.getLong("ownerUUIDMost"), data.getLong("ownerUUIDLeast"));
 	}
 	
 	protected void finishData()

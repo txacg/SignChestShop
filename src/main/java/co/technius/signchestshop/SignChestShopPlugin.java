@@ -31,6 +31,7 @@ import net.minecraft.server.v1_7_R3.NBTTagString;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -197,7 +198,6 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		Block b = event.getClickedBlock();
 		if(b == null)return;
 		if(b.getType() != Material.SIGN_POST && b.getType() != Material.WALL_SIGN)return;
-		//Sign s = (Sign)b.getState();
 		Shop shop = getShop(b);
 		if(shop == null)return;
 		ShopMode mode = shop.getMode();
@@ -398,8 +398,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					int iamount = event.getCursor().getAmount();
 					if(amount + iamount > a)amount = a - iamount;
 					price = price*amount;
-					//TODO Use alternative if available
-					if(!econ.has(player.getName(), price))
+					if(!econ.has(player, price))
 					{
 						player.sendMessage(cm.varTrans(config.getString("message.buy.fail", Messages.DEFAULT_BUY_FAIL), player, shop,
 								amount, price + curname, price));
@@ -407,8 +406,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					}
 					if(price != 0)
 					{
-						//TODO Use alternative if available
-						econ.withdrawPlayer(player.getName(), price);
+						econ.withdrawPlayer(player, price);
 						player.sendMessage(cm.varTrans(config.getString("message.buy.success", 
 								Messages.DEFAULT_BUY_SUCCESS), player, shop, amount, price + curname, price));
 					}
@@ -417,9 +415,8 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					ItemStack n = iamount == 0 ? shop.getItem(event.getRawSlot()) : player.getItemOnCursor();
 					n.setAmount(amount + iamount);
 					player.setItemOnCursor(n);
-					//TODO Use alternative if available
 					if(shop.getOwner() != null)
-						econ.depositPlayer(shop.getOwnerName(), price);
+						econ.depositPlayer(getServer().getOfflinePlayer(shop.getOwner()), price);
 					if(shop.isLimited())
 					{
 						if(current.getAmount() == amount)
@@ -443,8 +440,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					if(limited && amount > current.getAmount())
 						amount = current.getAmount();
 					price *= amount;
-					//TODO Use alternative if available
-					String owner = shop.getOwnerName();
+					OfflinePlayer owner = getServer().getPlayer(shop.getOwner());
 					if(owner != null)
 					{
 						if(!econ.has(owner, price))
@@ -503,8 +499,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					}
 					if(price != 0)
 					{
-						//TODO Use alternative if available
-						econ.depositPlayer(player.getName(), price);
+						econ.depositPlayer(player, price);
 						if(owner != null)econ.withdrawPlayer(owner, price);
 					}
 					player.sendMessage(cm.varTrans(config.getString("message.sell.success", 
