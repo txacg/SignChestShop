@@ -226,19 +226,50 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		Shop shp = null;
 		for(Shop s: shops)
 		{
-			if(s.transactions.contains(event.getView()))
+			if (s.transactions.containsKey(event.getView()))
 			{
+				if (config.getBoolean("shop.notifications", Options.DEFAULT_SHOP_NOTIFICATIONS) && s.getOwner() != null)
+				{
+					Player p = getServer().getPlayer(s.getOwner());
+					String title = s.getTitle();
+					double amount = s.transactions.get(event.getView());
+					String msg;
+					String def;
+					if (s.getMode() == ShopMode.BUY && title == null)
+					{
+						msg = "buy.notice.default";
+						def = Messages.DEFAULT_BUY_NOTICE;
+					}
+					else if (s.getMode() == ShopMode.BUY && title != null)
+					{
+						msg = "buy.notice.titled";
+						def = Messages.DEFAULT_BUY_NOTICE_TITLED;
+					}
+					else if (s.getMode() == ShopMode.SELL && title == null)
+					{
+						msg = "sell.notice.default";
+						def = Messages.DEFAULT_SELL_NOTICE;
+					}
+					else
+					{
+						msg = "sell.notice.titled";
+						def = Messages.DEFAULT_SELL_NOTICE_TITLED;
+					}
+					
+					if (p != null)
+						p.sendMessage(cm.varNotice(config.getString(msg, def), s, p, amount));
+				}
 				shp = s;
 				s.transactions.remove(event.getView());
 			}
-			else if(s.transactions.contains(event.getView()))shp = s;
-			else if(s.price.containsKey(event.getView()))shp = s;
-			else if(s.edit.contains(event.getView()))shp = s;
-			else if(s.storage.contains(event.getView()))shp = s;
+			else if (s.transactions.containsKey(event.getView()))shp = s;
+			else if (s.price.containsKey(event.getView()))shp = s;
+			else if (s.edit.contains(event.getView()))shp = s;
+			else if (s.storage.contains(event.getView()))shp = s;
 		}
-		if(!(event.getPlayer() instanceof Player))return;
+		if (!(event.getPlayer() instanceof Player))return;
 		Player player = (Player)event.getPlayer();
-		if(create.containsKey(event.getView()))
+		if (create.containsKey(event.getView()))
 		{
 			ArrayList<ItemStack>c = new ArrayList<ItemStack>();
 			for(ItemStack i:event.getInventory().getContents())
@@ -336,7 +367,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 		for(Shop s: shops)
 		{
 			if(shop != null)break;
-			if(s.transactions.contains(event.getView()))
+			if(s.transactions.containsKey(event.getView()))
 			{
 				shop = s;
 				transaction = true;
@@ -406,6 +437,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					}
 					if(price != 0)
 					{
+						shop.transactions.put(event.getView(), shop.transactions.get(event.getView()) + price);
 						econ.withdrawPlayer(player, price);
 						player.sendMessage(cm.varTrans(config.getString("message.buy.success", 
 								Messages.DEFAULT_BUY_SUCCESS), player, shop, amount, price + curname, price));
@@ -499,6 +531,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
 					}
 					if(price != 0)
 					{
+						shop.transactions.put(event.getView(), shop.transactions.get(event.getView()) + price);
 						econ.depositPlayer(player, price);
 						if(owner != null)econ.withdrawPlayer(owner, price);
 					}

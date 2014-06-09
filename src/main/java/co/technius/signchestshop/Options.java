@@ -2,7 +2,7 @@ package co.technius.signchestshop;
 
 public class Options 
 {
-	public static final String DEFAULT_BUY_MODE = "single";
+	public static final String DEFAULT_BUY_MODE = "amount";
 	public static final boolean DEFAULT_BUY_SHIFTCLICK = true;
 	public static final boolean DEFAULT_BUY_PERMS = false;
 	public static final boolean DEFAULT_BUY_PERMSID = false;
@@ -22,6 +22,7 @@ public class Options
 	public static final String DEFAULT_PRICE_COST = "<rawprice> <curname>";
 	public static final String DEFAULT_PRICE_COSTMULTI = "<totalprice> <curname> total (<rawprice> <curname> each)";
 	
+	public static final boolean DEFAULT_SHOP_NOTIFICATIONS = true;
 	public static final boolean DEFAULT_SHOP_AUTO_LIMIT = true;
 	public static final boolean DEFAULT_SHOP_AUTO_OWNER = true;
 	public static final boolean DEFAULT_SHOP_FORCEEMPTY = true;

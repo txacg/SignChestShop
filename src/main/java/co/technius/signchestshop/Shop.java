@@ -32,7 +32,7 @@ import co.technius.signchestshop.util.UUIDUtil;
 public class Shop 
 {
 	NBTTagCompound data;
-	HashSet<InventoryView> transactions = new HashSet<InventoryView>();
+	HashMap<InventoryView, Double> transactions = new HashMap<InventoryView, Double>();
 	HashMap<InventoryView, Double>price = new HashMap<InventoryView, Double>();
 	HashSet<InventoryView> edit = new HashSet<InventoryView>();
 	HashSet<InventoryView> storage = new HashSet<InventoryView>();
@@ -296,7 +296,7 @@ public class Shop
 		finishData();
 		ArrayList<Set<InventoryView>> lists = 
 				new ArrayList<Set<InventoryView>>();
-		lists.addAll(Arrays.asList(transactions, edit, storage, price.keySet()));
+		lists.addAll(Arrays.asList(transactions.keySet(), edit, storage, price.keySet()));
 		Iterator<InventoryView> it;
 		for(Set<InventoryView> l:lists)
 		{
@@ -336,7 +336,7 @@ public class Shop
 		String title = scs.cm.doShopTitle(this);
 		Inventory i = scs.getShop(data, true, title.length() > 32 ? title.substring(0, 32) : title);
 		InventoryView iv = player.openInventory(i);
-		transactions.add(iv);
+		transactions.put(iv, 0.0);
 		return iv;
 	}
 	
@@ -346,7 +346,7 @@ public class Shop
 	public void update()
 	{
 		ArrayList<Player> p = new ArrayList<Player>();
-		for(InventoryView iv: transactions)
+		for(InventoryView iv: transactions.keySet())
 		{
 			p.add((Player) iv.getPlayer());
 			iv.close();
@@ -360,7 +360,7 @@ public class Shop
 	 */
 	public InventoryView[] getBrowsing()
 	{
-		return transactions.toArray(new InventoryView[transactions.size()]);
+		return transactions.keySet().toArray(new InventoryView[transactions.size()]);
 	}
 	
 	/**

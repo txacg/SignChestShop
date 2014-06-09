@@ -11,6 +11,8 @@ public class Messages
 	public static final String DEFAULT_BUY_INVALID = "&cYou can't do that!";
 	public static final String DEFAULT_BUY_NOPERM = "&cYou are not allowed to buy from shops.";
 	public static final String DEFAULT_BUY_NOPERMID = "&cYou are not allowed to buy this item!";
+	public static final String DEFAULT_BUY_NOTICE = "&e<player> bought <price> worth of items from one of your shops!";
+	public static final String DEFAULT_BUY_NOTICE_TITLED = "&e<player> bought <price> worth of items from your <title> shop!";
 	
 	public static final String DEFAULT_SELL_SUCCESS = "&e<itemcorrectu> sold for <price>!";
 	public static final String DEFAULT_SELL_SUCCESS_OWNED = "&e<itemcorrectu> sold to <owner> <price>!";
@@ -21,6 +23,8 @@ public class Messages
 	public static final String DEFAULT_SELL_INVALID = "&cYou can't do that!";
 	public static final String DEFAULT_SELL_FAIL = "&cThe owner of this shop doesn't have enough money to buy this item!";
 	public static final String DEFAULT_SELL_NOSPACE = "&cThis shop doesn't have space for your item!";
+	public static final String DEFAULT_SELL_NOTICE = "&e<player> sold <price> worth of items to one of your shops!";
+	public static final String DEFAULT_SELL_NOTICE_TITLED = "&e<player> sold <price> worth of items to your <title> shop!";
 	
 	public static final String DEFAULT_EDIT = "&eSignChestShop edited!";
 	

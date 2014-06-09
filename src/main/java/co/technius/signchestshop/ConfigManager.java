@@ -62,6 +62,8 @@ public class ConfigManager
 			config.writeKey("shop.forceempty", Options.DEFAULT_SHOP_FORCEEMPTY);
 			config.insertComment("Minimum decimal places to display for prices");
 			config.writeKey("shop.mindecplaces", Options.DEFAULT_SHOP_MINDECPLACES);
+			config.insertComment("This determines if owners should receive notifications");
+			config.writeKey("shop.notifications", Options.DEFAULT_SHOP_NOTIFICATIONS);
 			config.writeLine();
 			config.insertComment("Enable this to make shops limited on creation");
 			config.writeKey("shop.auto.limit", Options.DEFAULT_SHOP_AUTO_LIMIT);
@@ -85,6 +87,10 @@ public class ConfigManager
 			config.writeKey("buy.modename", Options.DEFAULT_BUY_MODENAME);
 			config.insertComment("The <modeexp> variable of the buy mode (see shop option variable section above)");
 			config.writeKey("buy.modeexp", Options.DEFAULT_BUY_MODEEXP);
+			config.insertComment("The notice that is sent to the owner when someone buys an item from an unnamed shop (uses shop option variables)");
+			config.writeKey("buy.notice.default", Messages.DEFAULT_BUY_NOTICE);
+			config.insertComment("The notice that is sent to the owner when someone buys an item from a named shop (uses shop option variables)");
+			config.writeKey("buy.notice.titled", Messages.DEFAULT_BUY_NOTICE_TITLED);
 			config.writeLine();
 			config.insertComment("==== Selling Options ====#");
 			config.writeLine();
@@ -96,6 +102,10 @@ public class ConfigManager
 			config.writeKey("sell.modename", Options.DEFAULT_SELL_MODENAME);
 			config.insertComment("The <modeexp> variable of the sell mode (see shop option variable section above)");
 			config.writeKey("sell.modeexp", Options.DEFAULT_SELL_MODEEXP);
+			config.insertComment("The notice that is sent to the owner when someone sells an item to an unnamed shop (uses shop option variables)");
+			config.writeKey("sell.notice.default", Messages.DEFAULT_SELL_NOTICE);
+			config.insertComment("The notice that is sent to the owner when someone sells an item to a named shop (uses shop option variables)");
+			config.writeKey("sell.notice.titled", Messages.DEFAULT_SELL_NOTICE_TITLED);
 			config.writeLine();
 			config.insertComment("==== Messages ====#");
 			config.writeLine();
@@ -223,6 +233,13 @@ public class ConfigManager
 		a = a.replaceAll("<itemcorrectl>", (amount == 1 ? "item" : "items"));
 		a = a.replaceAll("<itemcorrectu>", (amount == 1 ? "Item" : "Items"));
 		return varShop(a, shop);
+	}
+	
+	String varNotice(String s, Shop shop, Player player, double amount)
+	{
+		String a = varPlayer(varShop(s, shop), player);
+		a = a.replaceAll("<price>", "" + amount);
+		return a;
 	}
 	
 	String varShop(String s, Shop shop)
