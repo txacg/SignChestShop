@@ -10,15 +10,15 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import net.minecraft.server.v1_7_R3.NBTBase;
-import net.minecraft.server.v1_7_R3.NBTTagCompound;
-import net.minecraft.server.v1_7_R3.NBTTagList;
+import net.minecraft.server.v1_7_R4.NBTBase;
+import net.minecraft.server.v1_7_R4.NBTTagCompound;
+import net.minecraft.server.v1_7_R4.NBTTagList;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_7_R3.inventory.CraftInventoryCustom;
-import org.bukkit.craftbukkit.v1_7_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_7_R4.inventory.CraftInventoryCustom;
+import org.bukkit.craftbukkit.v1_7_R4.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
@@ -116,17 +116,17 @@ public class Shop
 		{
 			NBTTagCompound c = (NBTTagCompound) ilist.get(a);
 			if(c.c().size() == 0)i[a] = null;
-			else i[a] = CraftItemStack.asCraftMirror((net.minecraft.server.v1_7_R3.ItemStack.createStack(c)));
+			else i[a] = CraftItemStack.asCraftMirror((net.minecraft.server.v1_7_R4.ItemStack.createStack(c)));
 		}
 		return i;
 	}
 	
-	net.minecraft.server.v1_7_R3.ItemStack getRawItem(int index)
+	net.minecraft.server.v1_7_R4.ItemStack getRawItem(int index)
 	{
 		NBTTagList ilist = data.getList("items", 10);
 		if(index >= ilist.size() || index < 0)
 			return null;
-		return net.minecraft.server.v1_7_R3.ItemStack.createStack(ilist.get(index));
+		return net.minecraft.server.v1_7_R4.ItemStack.createStack(ilist.get(index));
 	}
 	
 	/**
@@ -141,8 +141,8 @@ public class Shop
 		if(index >= ilist.size() || index < 0)
 			return null;
 		NBTTagCompound tag = ilist.get(index);
-		net.minecraft.server.v1_7_R3.ItemStack item = 
-			net.minecraft.server.v1_7_R3.ItemStack.createStack(tag);
+		net.minecraft.server.v1_7_R4.ItemStack item = 
+			net.minecraft.server.v1_7_R4.ItemStack.createStack(tag);
 		if(withPriceText)
 			scs.addPrice(item);
 		else if(item.tag != null)
@@ -211,7 +211,7 @@ public class Shop
 		setItem(index, CraftItemStack.asNMSCopy(item), retainPrice);
 	}
 	
-	protected void setItem(int index, net.minecraft.server.v1_7_R3.ItemStack item, boolean retainPrice)
+	protected void setItem(int index, net.minecraft.server.v1_7_R4.ItemStack item, boolean retainPrice)
 	{
 		NBTTagList ilist = data.getList("items", 10);
 		if(index >= ilist.size() || index < 0)
@@ -225,7 +225,7 @@ public class Shop
 		setItem(old, item, retainPrice);
 	}
 	
-	protected void setItem(NBTTagCompound old, net.minecraft.server.v1_7_R3.ItemStack nms, boolean retainPrice)
+	protected void setItem(NBTTagCompound old, net.minecraft.server.v1_7_R4.ItemStack nms, boolean retainPrice)
 	{
 		NBTTagCompound c = new NBTTagCompound();
 		nms.save(c);
@@ -275,7 +275,7 @@ public class Shop
 		for(int i = 0; i < l.size(); i ++)
 		{
 			storageinv.setItem(i, CraftItemStack.asCraftMirror(
-					net.minecraft.server.v1_7_R3.ItemStack.createStack((NBTTagCompound) l.get(i))));
+					net.minecraft.server.v1_7_R4.ItemStack.createStack((NBTTagCompound) l.get(i))));
 		}
 		if (data.hasKey("ownerUUIDMost") && data.hasKey("ownerUUIDLeast"))
 			owner = new UUID(data.getLong("ownerUUIDMost"), data.getLong("ownerUUIDLeast"));
