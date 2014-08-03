@@ -12,20 +12,21 @@ import org.json.simple.JSONValue;
 
 public class Updater
 {
-	public static UpdateInformation findUpdate(String version) 
-			throws IOException
-	{
-		URL link = new URL("https://api.curseforge.com/servermods/files?projectIds=47097");
-		URLConnection c = link.openConnection();
-		c.addRequestProperty("User-Agent", "SignChestShop version " + version + " (by Technius)");
-		BufferedReader br = new BufferedReader(new InputStreamReader(c.getInputStream()));
-		String s = br.readLine();
-		JSONArray jsa = (JSONArray) JSONValue.parse(s);
-		if(jsa.size() > 0)
-		{
-			JSONObject jso = (JSONObject) jsa.get(jsa.size() - 1);
-			return new UpdateInformation((String) jso.get("name"), (String) jso.get("releaseType"));
-		}
-		return null;
-	}
+
+    public static UpdateInformation findUpdate(final String version)
+            throws IOException
+    {
+        final URL link = new URL("https://api.curseforge.com/servermods/files?projectIds=47097");
+        final URLConnection c = link.openConnection();
+        c.addRequestProperty("User-Agent", "SignChestShop version " + version + " (by Technius)");
+        final BufferedReader br = new BufferedReader(new InputStreamReader(c.getInputStream()));
+        final String s = br.readLine();
+        final JSONArray jsa = (JSONArray) JSONValue.parse(s);
+        if (jsa.size() > 0)
+        {
+            final JSONObject jso = (JSONObject) jsa.get(jsa.size() - 1);
+            return new UpdateInformation((String) jso.get("name"), (String) jso.get("releaseType"));
+        }
+        return null;
+    }
 }

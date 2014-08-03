@@ -1,7 +1,8 @@
 name: SignChestShop
 main: co.technius.signchestshop.SignChestShopPlugin
 version: 1.3.6
-author: Technius
+author: obnoxint
+authors: [Technius]
 depend: [Vault]
 commands:
     signchestshop:
