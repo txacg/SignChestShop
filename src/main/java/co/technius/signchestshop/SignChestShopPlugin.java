@@ -1,5 +1,7 @@
 package co.technius.signchestshop;
 
+import static net.obnoxint.mcdev.signchestshop.R.*;
+
 import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
@@ -81,7 +83,6 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
     HashMap<InventoryView, Block> create = new HashMap<InventoryView, Block>();
     Economy econ;
     Logger log;
-    SignChestShopAPI api;
     protected static SignChestShopPlugin inst;
     private boolean initsuccess = false;
 
@@ -96,10 +97,10 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
             final boolean a = player.hasPermission("signchestshop.create");
             if (a) {
                 player.sendMessage(cm.color(config.getString("message.break.perm",
-                        Messages.DEFAULT_BREAK_PERM)));
+                        MSG_BREAK_PERM)));
             } else {
                 player.sendMessage(cm.varPlayer(config.getString(
-                        "message.break.noperm", Messages.DEFAULT_BREAK_NOPERM), player));
+                        "message.break.noperm", MSG_BREAK_NOPERM), player));
             }
             event.setCancelled(true);
             sb.getState().update();
@@ -146,7 +147,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
                 final ItemStack cursor = player.getItemOnCursor();
                 if (current == null || current.getType() == Material.AIR) {
                     if (mode == ShopMode.SELL) {
-                        player.sendMessage(cm.varPlayer(config.getString("message.sell.invalid", Messages.DEFAULT_SELL_INVALID), player));
+                        player.sendMessage(cm.varPlayer(config.getString("message.sell.invalid", MSG_SELL_INVALID), player));
                     }
                     return;
                 }
@@ -154,10 +155,10 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
                 if (!currentNMS.getTag().hasKey("scs_price"))
                     return;
                 double price = currentNMS.getTag().getDouble("scs_price");
-                if (config.getBoolean(str + ".permsid", mode == ShopMode.BUY ? Options.DEFAULT_BUY_PERMSID : Options.DEFAULT_SELL_PERMSID)) {
+                if (config.getBoolean(str + ".permsid", mode == ShopMode.BUY ? CFG_BUY_PERMSID : CFG_SELL_PERMSID)) {
                     if (!player.hasPermission("scs." + str + "." + current.getTypeId()) && !player.hasPermission("scs." + str + ".*")) {
                         player.sendMessage(cm.varPlayer(config.getString("message." + str + ".noperm", mode == ShopMode.BUY ?
-                                Messages.DEFAULT_BUY_NOPERM : Messages.DEFAULT_SELL_NOPERM), player));
+                                MSG_BUY_NOPERM : MSG_SELL_NOPERM), player));
                         return;
                     }
                 }
@@ -193,7 +194,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
                     }
                     price = price * amount;
                     if (!econ.has(player, price)) {
-                        player.sendMessage(cm.varTrans(config.getString("message.buy.fail", Messages.DEFAULT_BUY_FAIL), player, shop,
+                        player.sendMessage(cm.varTrans(config.getString("message.buy.fail", MSG_BUY_FAIL), player, shop,
                                 amount, price + curname, price));
                         return;
                     }
@@ -201,10 +202,10 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
                         shop.transactions.put(event.getView(), shop.transactions.get(event.getView()) + price);
                         econ.withdrawPlayer(player, price);
                         player.sendMessage(cm.varTrans(config.getString("message.buy.success",
-                                Messages.DEFAULT_BUY_SUCCESS), player, shop, amount, price + curname, price));
+                                MSG_BUY_SUCCESS), player, shop, amount, price + curname, price));
                     } else {
                         player.sendMessage(cm.varTrans(config.getString("message.buy.free",
-                                Messages.DEFAULT_BUY_FREE), player, shop, amount, price + curname, price));
+                                MSG_BUY_FREE), player, shop, amount, price + curname, price));
                     }
                     final ItemStack n = iamount == 0 ? shop.getItem(event.getRawSlot()) : player.getItemOnCursor();
                     n.setAmount(amount + iamount);
@@ -238,7 +239,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
                     if (owner != null) {
                         if (!econ.has(owner, price)) {
                             player.sendMessage(cm.varTrans(config.getString("message.sell.fail",
-                                    Messages.DEFAULT_SELL_FAIL), player, shop, amount, price + curname, price));
+                                    MSG_SELL_FAIL), player, shop, amount, price + curname, price));
                             return;
                         }
                     }
@@ -254,7 +255,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
                             }
                         }
                         if (freespace < amount * 2) {
-                            player.sendMessage(cm.varTrans(config.getString("messages.sell.nospace", Messages.DEFAULT_SELL_NOSPACE),
+                            player.sendMessage(cm.varTrans(config.getString("messages.sell.nospace", MSG_SELL_NOSPACE),
                                     player, shop, amount, price + curname, price));
                             return;
                         }
@@ -292,7 +293,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
                         }
                     }
                     player.sendMessage(cm.varTrans(config.getString("message.sell.success",
-                            Messages.DEFAULT_SELL_SUCCESS), player, shop, amount, price + curname, price));
+                            MSG_SELL_SUCCESS), player, shop, amount, price + curname, price));
                     final ItemStack n = cursor.clone();
                     n.setAmount(n.getAmount() - amount);
                     player.setItemOnCursor(n.getAmount() == 0 ? null : n);
@@ -301,7 +302,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
             } else if ((top && player.getItemOnCursor().getType() != Material.AIR &&
                     event.getSlot() != -999) || (!top && event.getCurrentItem().getType() != Material.AIR
                     && event.isShiftClick())) {
-                player.sendMessage(cm.varPlayer(config.getString("message." + str + ".invalid", Messages.DEFAULT_SELL_INVALID), player));
+                player.sendMessage(cm.varPlayer(config.getString("message." + str + ".invalid", MSG_SELL_INVALID), player));
                 player.updateInventory();
                 event.setResult(Result.DENY);
                 event.setCancelled(true);
@@ -311,7 +312,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
             event.setResult(Result.DENY);
             event.setCancelled(true);
             if (!top) {
-                player.sendMessage(cm.varPlayer(config.getString("message.price.cancel", Messages.DEFAULT_PRICE_CANCEL), player));
+                player.sendMessage(cm.varPlayer(config.getString("message.price.cancel", MSG_PRICE_CANCEL), player));
                 event.getView().close();
                 return;
             }
@@ -324,7 +325,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
                 addPrice(nms);
                 event.getInventory().setItem(event.getRawSlot(), CraftItemStack.asCraftMirror(nms));
             }
-            player.sendMessage(cm.varPlayer(config.getString("message.price.set", Messages.DEFAULT_PRICE_SET), player));
+            player.sendMessage(cm.varPlayer(config.getString("message.price.set", MSG_PRICE_SET), player));
             player.updateInventory();
         } else if (shop.edit.contains(event.getView())) {
             final boolean sclick = top && event.isShiftClick();
@@ -346,13 +347,13 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
                     getServer().getScheduler().scheduleSyncDelayedTask(this,
                             new Runnable() {
 
-                                @Override
-                                public void run()
-                                {
-                                    runnablePlayer.updateInventory();
-                                }
+                        @Override
+                        public void run()
+                        {
+                            runnablePlayer.updateInventory();
+                        }
 
-                            });
+                    });
                 }
             }
         }
@@ -363,7 +364,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
         Shop shp = null;
         for (final Shop s : shops) {
             if (s.transactions.containsKey(event.getView())) {
-                if (config.getBoolean("shop.notifications", Options.DEFAULT_SHOP_NOTIFICATIONS) && s.getOwner() != null) {
+                if (config.getBoolean("shop.notifications", CFG_SHOP_NOTIFICATIONS) && s.getOwner() != null) {
                     final Player p = getServer().getPlayer(s.getOwner());
                     final String title = s.getTitle();
                     final double amount = s.transactions.get(event.getView());
@@ -371,16 +372,16 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
                     String def;
                     if (s.getMode() == ShopMode.BUY && title == null) {
                         msg = "buy.notice.default";
-                        def = Messages.DEFAULT_BUY_NOTICE;
+                        def = MSG_BUY_NOTICE;
                     } else if (s.getMode() == ShopMode.BUY && title != null) {
                         msg = "buy.notice.titled";
-                        def = Messages.DEFAULT_BUY_NOTICE_TITLED;
+                        def = MSG_BUY_NOTICE_TITLED;
                     } else if (s.getMode() == ShopMode.SELL && title == null) {
                         msg = "sell.notice.default";
-                        def = Messages.DEFAULT_SELL_NOTICE;
+                        def = MSG_SELL_NOTICE;
                     } else {
                         msg = "sell.notice.titled";
-                        def = Messages.DEFAULT_SELL_NOTICE_TITLED;
+                        def = MSG_SELL_NOTICE_TITLED;
                     }
 
                     if (p != null) {
@@ -409,7 +410,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
                 c.add(i);
             }
             if (c.isEmpty()) {
-                player.sendMessage(cm.varPlayer(config.getString("message.create.cancel", Messages.DEFAULT_CREATE_CANCEL), player));
+                player.sendMessage(cm.varPlayer(config.getString("message.create.cancel", MSG_CREATE_CANCEL), player));
                 return;
             }
             final Block b = create.get(event.getView());
@@ -436,20 +437,20 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
             }
             shop.set("items", items);
             final Shop shopvar = new Shop(shop);
-            if (config.getBoolean("shop.auto.owner", Options.DEFAULT_SHOP_AUTO_OWNER)) {
+            if (config.getBoolean("shop.auto.owner", CFG_SHOP_AUTO_OWNER)) {
                 shopvar.setOwner(player.getUniqueId());
             }
-            shopvar.setLimited(config.getBoolean("shop.auto.limit", Options.DEFAULT_SHOP_AUTO_LIMIT));
+            shopvar.setLimited(config.getBoolean("shop.auto.limit", CFG_SHOP_AUTO_LIMIT));
             shops.add(shopvar);
             data.getList("Shops", 10).add(shop);
-            player.sendMessage(cm.varPlayer(config.getString("message.create.success", Messages.DEFAULT_CREATE_SUCCESS), player));
+            player.sendMessage(cm.varPlayer(config.getString("message.create.success", MSG_CREATE_SUCCESS), player));
             if (e) {
                 s.setLine(0, ChatColor.AQUA + "Shop");
                 s.setLine(1, "Right click to");
                 s.setLine(2, "open!");
             }
             s.update();
-            if (config.getBoolean("log.create", Options.DEFAULT_LOG_SHOP_CREATION)) {
+            if (config.getBoolean("log.create", CFG_LOG_SHOP_CREATION)) {
                 log.info(player.getName() + " created a SignChestShop at " + bloc.getX() + ", " +
                         bloc.getY() + ", " + bloc.getZ() + " at world " + bloc.getWorld().getName());
             }
@@ -457,7 +458,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
         } else if (shp == null)
             return;
         else if (shp.price.containsKey(event.getView())) {
-            player.sendMessage(cm.varPlayer(config.getString("message.price.cancel", Messages.DEFAULT_PRICE_CANCEL), player));
+            player.sendMessage(cm.varPlayer(config.getString("message.price.cancel", MSG_PRICE_CANCEL), player));
             shp.price.remove(event.getView());
             shp.update();
             return;
@@ -475,7 +476,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
                 }
             }
             shop.set("items", items);
-            player.sendMessage(cm.varPlayer(config.getString("message.edit", Messages.DEFAULT_EDIT), player));
+            player.sendMessage(cm.varPlayer(config.getString("message.edit", MSG_EDIT), player));
             shp.edit.remove(event.getView());
             shp.update();
         } else if (shp.storage.contains(event.getView())) {
@@ -497,13 +498,17 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
         }
     }
 
-    /**
-     * Returns the plugin's API
-     *
-     * @return The API
-     */
-    public SignChestShopAPI getAPI() {
-        return api;
+    public Shop getShop(final Block block) {
+        for (final Shop shop : shops) {
+            final World w = getServer().getWorld(shop.getWorld());
+            if (w == null) {
+                continue;
+            }
+            final Location loc = new Location(w, shop.getX(), shop.getY(), shop.getZ()).getBlock().getLocation();
+            if (loc.equals(block.getLocation()))
+                return shop;
+        }
+        return null;
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -522,13 +527,13 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
             return;
         final ShopMode mode = shop.getMode();
         if (mode == ShopMode.BUY) {
-            if (!event.getPlayer().hasPermission("scs.buy") && config.getBoolean("buy.perms", Options.DEFAULT_BUY_PERMS)) {
-                event.getPlayer().sendMessage(cm.color(config.getString("messages.buy.noperm", Messages.DEFAULT_BUY_NOPERM)));
+            if (!event.getPlayer().hasPermission("scs.buy") && config.getBoolean("buy.perms", CFG_BUY_PERMS)) {
+                event.getPlayer().sendMessage(cm.color(config.getString("messages.buy.noperm", MSG_BUY_NOPERM)));
                 return;
             }
         } else if (mode == ShopMode.SELL) {
-            if (!event.getPlayer().hasPermission("scs.sell") && config.getBoolean("sell.perms", Options.DEFAULT_SELL_PERMS)) {
-                event.getPlayer().sendMessage(cm.color(config.getString("messages.sell.noperm", Messages.DEFAULT_SELL_NOPERM)));
+            if (!event.getPlayer().hasPermission("scs.sell") && config.getBoolean("sell.perms", CFG_SELL_PERMS)) {
+                event.getPlayer().sendMessage(cm.color(config.getString("messages.sell.noperm", MSG_SELL_NOPERM)));
                 return;
             }
         }
@@ -617,28 +622,30 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
         buildShops();
         getServer().getPluginManager().registerEvents(this, this);
         getCommand("signchestshop").setExecutor(new SignChestShopCommandExecutor(this));
-        api = new SignChestShopAPI(this);
         initsuccess = true;
     }
 
-    protected Shop getShop(final Block block) {
-        for (final Shop shop : shops) {
-            final World w = getServer().getWorld(shop.getWorld());
-            if (w == null) {
-                continue;
-            }
-            final Location loc = new Location(w, shop.getX(), shop.getY(), shop.getZ()).getBlock().getLocation();
-            if (loc.equals(block.getLocation()))
-                return shop;
+    void addPrice(final net.minecraft.server.v1_7_R4.ItemStack item) {
+        NBTTagCompound tag = item.tag;
+        if (tag == null) {
+            item.setTag((tag = new NBTTagCompound()));
         }
-        return null;
+        if (!tag.hasKey("display")) {
+            tag.set("display", new NBTTagCompound());
+        }
+        final NBTTagCompound display = tag.getCompound("display");
+        if (!display.hasKey("Lore")) {
+            display.set("Lore", new NBTTagList());
+        }
+        final NBTTagList lore = display.getList("Lore", 8);
+        lore.add(new NBTTagString(price(tag, item.count, null)));
     }
 
-    protected Inventory getShop(final NBTTagCompound shop, final boolean buy) {
+    Inventory getShop(final NBTTagCompound shop, final boolean buy) {
         return getShop(shop, buy, "Shop");
     }
 
-    protected Inventory getShop(final NBTTagCompound shop, final boolean displayprice, final String title) {
+    Inventory getShop(final NBTTagCompound shop, final boolean displayprice, final String title) {
         final NBTTagList items = shop.getList("items", 10);
         final ArrayList<ItemStack> ilist = new ArrayList<ItemStack>();
         for (int i = 0; i < items.size(); i++) {
@@ -665,7 +672,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
         return i;
     }
 
-    protected NBTTagCompound getShopData(final Block b) {
+    NBTTagCompound getShopData(final Block b) {
         final Location bloc = b.getLocation();
         final NBTTagList shops = data.getList("Shops", 10);
         for (int i = 0; i < shops.size(); i++) {
@@ -690,7 +697,7 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
         return null;
     }
 
-    protected Shop getShopObject(final NBTTagCompound data) {
+    Shop getShopObject(final NBTTagCompound data) {
         for (final Shop s : shops) {
             if (s.data == data)
                 return s;
@@ -698,11 +705,36 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
         return null;
     }
 
-    protected net.minecraft.server.v1_7_R4.ItemStack nmsStack(final ItemStack i) {
+    net.minecraft.server.v1_7_R4.ItemStack nmsStack(final ItemStack i) {
         return CraftItemStack.asNMSCopy(i);
     }
 
-    protected void removeShop(final NBTTagCompound s) {
+    String price(final NBTTagCompound tag, final int amount, final Double gprice) {
+        final String price = config.getString("shop.price.text", CFG_PRICE_TEXT);
+        String pprice;
+        double rprice = -1;
+        if (tag.hasKey("scs_price")) {
+            rprice = gprice == null ? tag.getDouble("scs_price") : gprice.doubleValue();
+            if (rprice < 0) {
+                pprice = config.getString("shop.price.display", CFG_PRICE_DISPLAY);
+            }
+            if (rprice == 0) {
+                pprice = config.getString("shop.price.free", CFG_PRICE_FREE);
+            } else {
+                if (amount == 1) {
+                    pprice = config.getString("shop.price.cost", CFG_PRICE_COST).replaceAll("<rawprice>", cm.placePadding(rprice));
+                } else {
+                    pprice = config.getString("shop.price.costmulti", CFG_PRICE_COSTMULTI)
+                            .replaceAll("<rawprice>", cm.placePadding(rprice)).replaceAll("<totalprice>", cm.placePadding(rprice * amount));
+                }
+            }
+        } else {
+            pprice = config.getString("shop.price.display", CFG_PRICE_DISPLAY);
+        }
+        return cm.varCur(price.replaceAll("<price>", pprice), rprice);
+    }
+
+    void removeShop(final NBTTagCompound s) {
         final NBTTagList shops = data.getList("Shops", 10);
         final NBTTagList newshops = new NBTTagList();
         for (int i = 0; i < shops.size(); i++) {
@@ -720,47 +752,6 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
             }
         }
         data.set("Shops", newshops);
-    }
-
-    void addPrice(final net.minecraft.server.v1_7_R4.ItemStack item) {
-        NBTTagCompound tag = item.tag;
-        if (tag == null) {
-            item.setTag((tag = new NBTTagCompound()));
-        }
-        if (!tag.hasKey("display")) {
-            tag.set("display", new NBTTagCompound());
-        }
-        final NBTTagCompound display = tag.getCompound("display");
-        if (!display.hasKey("Lore")) {
-            display.set("Lore", new NBTTagList());
-        }
-        final NBTTagList lore = display.getList("Lore", 8);
-        lore.add(new NBTTagString(price(tag, item.count, null)));
-    }
-
-    String price(final NBTTagCompound tag, final int amount, final Double gprice) {
-        final String price = config.getString("shop.price.text", Options.DEFAULT_PRICE_TEXT);
-        String pprice;
-        double rprice = -1;
-        if (tag.hasKey("scs_price")) {
-            rprice = gprice == null ? tag.getDouble("scs_price") : gprice.doubleValue();
-            if (rprice < 0) {
-                pprice = config.getString("shop.price.display", Options.DEFAULT_PRICE_DISPLAY);
-            }
-            if (rprice == 0) {
-                pprice = config.getString("shop.price.free", Options.DEFAULT_PRICE_FREE);
-            } else {
-                if (amount == 1) {
-                    pprice = config.getString("shop.price.cost", Options.DEFAULT_PRICE_COST).replaceAll("<rawprice>", cm.placePadding(rprice));
-                } else {
-                    pprice = config.getString("shop.price.costmulti", Options.DEFAULT_PRICE_COSTMULTI)
-                            .replaceAll("<rawprice>", cm.placePadding(rprice)).replaceAll("<totalprice>", cm.placePadding(rprice * amount));
-                }
-            }
-        } else {
-            pprice = config.getString("shop.price.display", Options.DEFAULT_PRICE_DISPLAY);
-        }
-        return cm.varCur(price.replaceAll("<price>", pprice), rprice);
     }
 
     void stripSCSData(final net.minecraft.server.v1_7_R4.ItemStack nms) {

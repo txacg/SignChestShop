@@ -1,5 +1,7 @@
 package co.technius.signchestshop;
 
+import static net.obnoxint.mcdev.signchestshop.R.*;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.UUID;
@@ -122,9 +124,9 @@ public class SignChestShopCommandExecutor implements CommandExecutor
                 final Player player = (Player) sender;
                 final Block b = player.getTargetBlock(null, 5);
                 if (b == null)
-                    return msg(sender, cm.varPlayer(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+                    return msg(sender, cm.varPlayer(config.getString("message.cmd.notarget", MSG_CMD_NOTARGET), player));
                 if (b.getType() != Material.SIGN_POST && b.getType() != Material.WALL_SIGN)
-                    return msg(sender, cm.varPlayer(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+                    return msg(sender, cm.varPlayer(config.getString("message.cmd.notarget", MSG_CMD_NOTARGET), player));
                 final Sign s = (Sign) b.getState();
                 boolean e = false;
                 for (final String x : s.getLines()) {
@@ -132,7 +134,7 @@ public class SignChestShopCommandExecutor implements CommandExecutor
                         e = true;
                     }
                 }
-                if (e && config.getBoolean("shop.forceempty", Options.DEFAULT_SHOP_FORCEEMPTY))
+                if (e && config.getBoolean("shop.forceempty", CFG_SHOP_FORCEEMPTY))
                     return msg(sender, ChatColor.RED + "This sign must be empty!");
                 final NBTTagCompound sh = plugin.getShopData(b);
                 if (sh != null)
@@ -150,10 +152,10 @@ public class SignChestShopCommandExecutor implements CommandExecutor
                 final Player player = (Player) sender;
                 final Block b = player.getTargetBlock(null, 5);
                 if (b == null)
-                    return msg(sender, cm.varPlayer(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
-                final Shop s = plugin.api.getShop(b);
+                    return msg(sender, cm.varPlayer(config.getString("message.cmd.notarget", MSG_CMD_NOTARGET), player));
+                final Shop s = plugin.getShop(b);
                 if (s == null)
-                    return msg(sender, cm.varPlayer(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+                    return msg(sender, cm.varPlayer(config.getString("message.cmd.notarget", MSG_CMD_NOTARGET), player));
                 if (checkOwner(player, s, "scs.bypass.break"))
                     return true;
                 final Sign sign = (Sign) b.getState();
@@ -300,7 +302,7 @@ public class SignChestShopCommandExecutor implements CommandExecutor
                 if (args[0].equalsIgnoreCase("none"))
                 {
                     s.setTitle(null);
-                    return msg(sender, cm.varPlayer(config.getString("message.settitle.remove", Messages.DEFAULT_SETTITLE_REMOVE), player));
+                    return msg(sender, cm.varPlayer(config.getString("message.settitle.remove", MSG_SETTITLE_REMOVE), player));
                 }
                 final StringBuffer sb = new StringBuffer();
                 sb.append(args[1]);
@@ -309,9 +311,9 @@ public class SignChestShopCommandExecutor implements CommandExecutor
                 }
                 final String n = sb.toString();
                 if (n.length() > 32)
-                    return msg(sender, cm.varPlayer(config.getString("message.settitle.fail", Messages.DEFAULT_SETTITLE_FAIL), player).replaceAll("<title>", n));
+                    return msg(sender, cm.varPlayer(config.getString("message.settitle.fail", MSG_SETTITLE_FAIL), player).replaceAll("<title>", n));
                 s.setTitle(n);
-                msg(sender, cm.varPlayer(config.getString("message.settitle", Messages.DEFAULT_SETTITLE_SUCCESS), player).replaceAll("<title>", n));
+                msg(sender, cm.varPlayer(config.getString("message.settitle", MSG_SETTITLE_SUCCESS), player).replaceAll("<title>", n));
             } else if (args[0].equalsIgnoreCase("help")) {
                 helpCmd(sender, args, "SignChestShop", help);
             } else {
@@ -328,7 +330,7 @@ public class SignChestShopCommandExecutor implements CommandExecutor
 
     private boolean checkOwner(final Player player, final Shop shop, final String perm) {
         if (!player.hasPermission(perm) && !player.getUniqueId().equals(shop.getOwner()))
-            return msg(player, cm.varPlayer(config.getString("message.cmd.notowned", Messages.DEFAULT_CMD_NOTOWNED), player));
+            return msg(player, cm.varPlayer(config.getString("message.cmd.notowned", MSG_CMD_NOTOWNED), player));
         return false;
     }
 
@@ -346,12 +348,12 @@ public class SignChestShopCommandExecutor implements CommandExecutor
         @SuppressWarnings("deprecation")
         final Block b = player.getTargetBlock(null, 5);
         if (b == null) {
-            msg(sender, cm.varPlayer(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+            msg(sender, cm.varPlayer(config.getString("message.cmd.notarget", MSG_CMD_NOTARGET), player));
             return null;
         }
         final Shop s = plugin.getShop(b);
         if (s == null) {
-            msg(sender, cm.varPlayer(config.getString("message.cmd.notarget", Messages.DEFAULT_CMD_NOTARGET), player));
+            msg(sender, cm.varPlayer(config.getString("message.cmd.notarget", MSG_CMD_NOTARGET), player));
         }
         return s;
     }
@@ -374,7 +376,7 @@ public class SignChestShopCommandExecutor implements CommandExecutor
     private boolean noPerm(final CommandSender sender, final String perm) {
         if (perm == null || sender.hasPermission(perm))
             return false;
-        sender.sendMessage(cm.color(config.getString("message.cmd.noperm", Messages.DEFAULT_CMD_NOPERM)));
+        sender.sendMessage(cm.color(config.getString("message.cmd.noperm", MSG_CMD_NOPERM)));
         return true;
     }
 }
