@@ -57,8 +57,6 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import co.technius.signchestshop.Shop.ShopMode;
-import co.technius.signchestshop.util.UpdateInformation;
-import co.technius.signchestshop.util.Updater;
 
 import com.evilmidget38.UUIDFetcher;
 
@@ -348,13 +346,13 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
                     getServer().getScheduler().scheduleSyncDelayedTask(this,
                             new Runnable() {
 
-                        @Override
-                        public void run()
-                        {
-                            runnablePlayer.updateInventory();
-                        }
+                                @Override
+                                public void run()
+                                {
+                                    runnablePlayer.updateInventory();
+                                }
 
-                    });
+                            });
                 }
             }
         }
@@ -621,25 +619,6 @@ public class SignChestShopPlugin extends JavaPlugin implements Listener
         getCommand("signchestshop").setExecutor(new SignChestShopCommandExecutor(this));
         api = new SignChestShopAPI(this);
         initsuccess = true;
-        if (config.getBoolean("updater.check", true)) {
-            getServer().getScheduler().runTaskAsynchronously(this, new Runnable() {
-
-                @Override
-                public void run() {
-                    try {
-                        final UpdateInformation info = Updater.findUpdate(getDescription().getVersion());
-                        if (info != null) {
-                            if (!("v" + getDescription().getVersion()).equals(info.getVersion())) {
-                                getLogger().info("A new update is available: " + info.getVersion() + " (" + info.getType() + ")");
-                            }
-                        }
-                    } catch (final IOException e) {
-                        getLogger().warning("Failed to find update: " + e);
-                    }
-                }
-
-            });
-        }
     }
 
     protected Shop getShop(final Block block) {

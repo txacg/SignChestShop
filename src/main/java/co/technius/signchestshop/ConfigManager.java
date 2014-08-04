@@ -199,11 +199,6 @@ public class ConfigManager {
             config.writeLine();
             config.insertComment("Enable this to log shop creation to the console");
             config.write("log.create", "" + config.getBoolean("log.create", Options.DEFAULT_LOG_SHOP_CREATION));
-            config.writeLine();
-            config.insertComment("==== Update Checker Options ====#");
-            config.writeLine();
-            config.insertComment("Enable this to automatically check for updates on enable");
-            config.write("updater.check", "" + config.getBoolean("updater.check", Options.DEFAULT_UPDATER_CHECK));
             config.close();
         } catch (final IOException ioe) {
             plugin.getLogger().log(Level.SEVERE, "Could not create config", ioe);

@@ -14,8 +14,6 @@ public class Options {
     public static final String DEFAULT_SELL_MODENAME = "Sell";
     public static final String DEFAULT_SELL_MODEEXP = "to";
 
-    public static final boolean DEFAULT_UPDATER_CHECK = true;
-
     public static final String DEFAULT_PRICE_TEXT = "&bPrice: &6<price>";
     public static final String DEFAULT_PRICE_FREE = "Free";
     public static final String DEFAULT_PRICE_DISPLAY = "Display Only";
