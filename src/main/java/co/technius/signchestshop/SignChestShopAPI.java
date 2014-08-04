@@ -15,6 +15,7 @@ import co.technius.signchestshop.Shop.ShopMode;
  * This class contains API methods
  * for SignChestShop
  */
+@Deprecated
 public class SignChestShopAPI {
 
     private final SignChestShopPlugin plugin;
