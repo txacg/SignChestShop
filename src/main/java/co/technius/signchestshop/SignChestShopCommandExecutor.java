@@ -4,12 +4,13 @@ import static net.obnoxint.mcdev.signchestshop.R.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 
-import net.minecraft.server.v1_7_R4.NBTTagCompound;
+import net.minecraft.server.v1_9_R2.NBTTagCompound;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -122,7 +123,7 @@ public class SignChestShopCommandExecutor implements CommandExecutor
                 if (noConsole(sender))
                     return true;
                 final Player player = (Player) sender;
-                final Block b = player.getTargetBlock(null, 5);
+                final Block b = player.getTargetBlock((HashSet<Byte>) null, 5);
                 if (b == null)
                     return msg(sender, cm.varPlayer(config.getString("message.cmd.notarget", MSG_CMD_NOTARGET), player));
                 if (b.getType() != Material.SIGN_POST && b.getType() != Material.WALL_SIGN)
@@ -150,7 +151,7 @@ public class SignChestShopCommandExecutor implements CommandExecutor
                 if (noConsole(sender))
                     return true;
                 final Player player = (Player) sender;
-                final Block b = player.getTargetBlock(null, 5);
+                final Block b = player.getTargetBlock((HashSet<Byte>) null, 5);
                 if (b == null)
                     return msg(sender, cm.varPlayer(config.getString("message.cmd.notarget", MSG_CMD_NOTARGET), player));
                 final Shop s = plugin.getShop(b);
@@ -181,7 +182,7 @@ public class SignChestShopCommandExecutor implements CommandExecutor
                 } else {
                     try {
                         price = Double.parseDouble(args[1]);
-                        if (price <= 0)
+                        if (price < 0.01)
                             return msg(sender, ChatColor.RED +
                                     "Price must be a positive number!");
                     } catch (final NumberFormatException nfe) {
@@ -346,7 +347,7 @@ public class SignChestShopCommandExecutor implements CommandExecutor
         }
         final Player player = (Player) sender;
         @SuppressWarnings("deprecation")
-        final Block b = player.getTargetBlock(null, 5);
+        final Block b = player.getTargetBlock((HashSet<Byte>) null, 5);
         if (b == null) {
             msg(sender, cm.varPlayer(config.getString("message.cmd.notarget", MSG_CMD_NOTARGET), player));
             return null;

@@ -10,15 +10,15 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import net.minecraft.server.v1_7_R4.NBTBase;
-import net.minecraft.server.v1_7_R4.NBTTagCompound;
-import net.minecraft.server.v1_7_R4.NBTTagList;
+import net.minecraft.server.v1_9_R2.NBTBase;
+import net.minecraft.server.v1_9_R2.NBTTagCompound;
+import net.minecraft.server.v1_9_R2.NBTTagList;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_7_R4.inventory.CraftInventoryCustom;
-import org.bukkit.craftbukkit.v1_7_R4.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_9_R2.inventory.CraftInventoryCustom;
+import org.bukkit.craftbukkit.v1_9_R2.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
@@ -154,7 +154,7 @@ public class Shop {
             if (c.c().size() == 0) {
                 i[a] = null;
             } else {
-                i[a] = CraftItemStack.asCraftMirror((net.minecraft.server.v1_7_R4.ItemStack.createStack(c)));
+                i[a] = CraftItemStack.asCraftMirror((net.minecraft.server.v1_9_R2.ItemStack.createStack(c)));
             }
         }
         return i;
@@ -184,10 +184,10 @@ public class Shop {
         if (index >= ilist.size() || index < 0)
             return null;
         final NBTTagCompound tag = ilist.get(index);
-        final net.minecraft.server.v1_7_R4.ItemStack item = net.minecraft.server.v1_7_R4.ItemStack.createStack(tag);
+        final net.minecraft.server.v1_9_R2.ItemStack item = net.minecraft.server.v1_9_R2.ItemStack.createStack(tag);
         if (withPriceText) {
             scs.addPrice(item);
-        } else if (item.tag != null) {
+        } else if (item.getTag() != null) {
             scs.stripSCSData(item, false);
         }
         return CraftItemStack.asCraftMirror(item);
@@ -498,14 +498,14 @@ public class Shop {
         for (int i = 0; i < l.size(); i++)
         {
             storageinv.setItem(i, CraftItemStack.asCraftMirror(
-                    net.minecraft.server.v1_7_R4.ItemStack.createStack(l.get(i))));
+                    net.minecraft.server.v1_9_R2.ItemStack.createStack(l.get(i))));
         }
         if (data.hasKey("ownerUUIDMost") && data.hasKey("ownerUUIDLeast")) {
             owner = new UUID(data.getLong("ownerUUIDMost"), data.getLong("ownerUUIDLeast"));
         }
     }
 
-    protected void setItem(final int index, final net.minecraft.server.v1_7_R4.ItemStack item, final boolean retainPrice) {
+    protected void setItem(final int index, final net.minecraft.server.v1_9_R2.ItemStack item, final boolean retainPrice) {
         final NBTTagList ilist = data.getList("items", 10);
         if (index >= ilist.size() || index < 0)
             throw new ArrayIndexOutOfBoundsException(index);
@@ -517,7 +517,7 @@ public class Shop {
         setItem(old, item, retainPrice);
     }
 
-    protected void setItem(final NBTTagCompound old, final net.minecraft.server.v1_7_R4.ItemStack nms, final boolean retainPrice) {
+    protected void setItem(final NBTTagCompound old, final net.minecraft.server.v1_9_R2.ItemStack nms, final boolean retainPrice) {
         final NBTTagCompound c = new NBTTagCompound();
         nms.save(c);
         for (final Object o : c.c()) {
@@ -536,10 +536,10 @@ public class Shop {
         }
     }
 
-    net.minecraft.server.v1_7_R4.ItemStack getRawItem(final int index) {
+    net.minecraft.server.v1_9_R2.ItemStack getRawItem(final int index) {
         final NBTTagList ilist = data.getList("items", 10);
         if (index >= ilist.size() || index < 0)
             return null;
-        return net.minecraft.server.v1_7_R4.ItemStack.createStack(ilist.get(index));
+        return net.minecraft.server.v1_9_R2.ItemStack.createStack(ilist.get(index));
     }
 }
