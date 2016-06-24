@@ -5,12 +5,13 @@ import static net.obnoxint.mcdev.signchestshop.R.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 
-import net.minecraft.server.v1_9_R2.NBTTagCompound;
+import net.minecraft.server.v1_10_R1.NBTTagCompound;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -26,8 +27,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import co.technius.signchestshop.Shop.ShopMode;
 import co.technius.signchestshop.util.UUIDUtil;
 
-public class SignChestShopCommandExecutor implements CommandExecutor
-{
+public class SignChestShopCommandExecutor implements CommandExecutor {
 
     private class CmdDesc {
 
@@ -123,7 +123,7 @@ public class SignChestShopCommandExecutor implements CommandExecutor
                 if (noConsole(sender))
                     return true;
                 final Player player = (Player) sender;
-                final Block b = player.getTargetBlock((HashSet<Byte>) null, 5);
+                final Block b = player.getTargetBlock((Set<Material>) null, 5);
                 if (b == null)
                     return msg(sender, cm.varPlayer(config.getString("message.cmd.notarget", MSG_CMD_NOTARGET), player));
                 if (b.getType() != Material.SIGN_POST && b.getType() != Material.WALL_SIGN)
@@ -144,14 +144,13 @@ public class SignChestShopCommandExecutor implements CommandExecutor
                 plugin.create.put(player.openInventory(i), b);
                 player.sendMessage(ChatColor.YELLOW + "Put all the items you want to " +
                         "sell in the shop's inventory.");
-            }
-            else if (args[0].equalsIgnoreCase("break")) {
+            } else if (args[0].equalsIgnoreCase("break")) {
                 if (noPerm(sender, "scs.create"))
                     return true;
                 if (noConsole(sender))
                     return true;
                 final Player player = (Player) sender;
-                final Block b = player.getTargetBlock((HashSet<Byte>) null, 5);
+                final Block b = player.getTargetBlock((Set<Material>) null, 5);
                 if (b == null)
                     return msg(sender, cm.varPlayer(config.getString("message.cmd.notarget", MSG_CMD_NOTARGET), player));
                 final Shop s = plugin.getShop(b);
@@ -257,8 +256,7 @@ public class SignChestShopCommandExecutor implements CommandExecutor
                 final Shop s = checkTarget(sender, "scs.admin", 2, 2, args.length, "scs setowner <name>");
                 if (s == null)
                     return true;
-                if (args[1].equalsIgnoreCase("none"))
-                {
+                if (args[1].equalsIgnoreCase("none")) {
                     s.setOwner((UUID) null);
                     return msg(sender, ChatColor.GREEN + "This shop no longer has an owner.");
                 }
@@ -300,8 +298,7 @@ public class SignChestShopCommandExecutor implements CommandExecutor
                 final Player player = (Player) sender;
                 if (checkOwner(player, s, "scs.bypass.settitle"))
                     return true;
-                if (args[0].equalsIgnoreCase("none"))
-                {
+                if (args[0].equalsIgnoreCase("none")) {
                     s.setTitle(null);
                     return msg(sender, cm.varPlayer(config.getString("message.settitle.remove", MSG_SETTITLE_REMOVE), player));
                 }
@@ -347,7 +344,7 @@ public class SignChestShopCommandExecutor implements CommandExecutor
         }
         final Player player = (Player) sender;
         @SuppressWarnings("deprecation")
-        final Block b = player.getTargetBlock((HashSet<Byte>) null, 5);
+        final Block b = player.getTargetBlock((Set<Material>) null, 5);
         if (b == null) {
             msg(sender, cm.varPlayer(config.getString("message.cmd.notarget", MSG_CMD_NOTARGET), player));
             return null;
