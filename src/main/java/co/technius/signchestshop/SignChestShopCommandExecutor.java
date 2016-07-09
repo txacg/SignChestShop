@@ -1,6 +1,25 @@
 package co.technius.signchestshop;
 
-import static net.obnoxint.mcdev.signchestshop.R.*;
+import co.technius.signchestshop.Shop.ShopMode;
+import co.technius.signchestshop.util.UUIDUtil;
+
+import net.minecraft.server.v1_9_R2.MovingObjectPosition;
+import net.minecraft.server.v1_9_R2.NBTTagCompound;
+import net.minecraft.server.v1_9_R2.Vec3D;
+
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.block.Sign;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.craftbukkit.v1_9_R2.CraftWorld;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Vector;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -10,24 +29,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 
-import net.minecraft.server.v1_9_R2.NBTTagCompound;
+import static net.obnoxint.mcdev.signchestshop.R.*;
 
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.block.Sign;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.scheduler.BukkitRunnable;
-
-import co.technius.signchestshop.Shop.ShopMode;
-import co.technius.signchestshop.util.UUIDUtil;
-
-public class SignChestShopCommandExecutor implements CommandExecutor
-{
+public class SignChestShopCommandExecutor implements CommandExecutor {
 
     private class CmdDesc {
 
@@ -123,7 +127,7 @@ public class SignChestShopCommandExecutor implements CommandExecutor
                 if (noConsole(sender))
                     return true;
                 final Player player = (Player) sender;
-                final Block b = player.getTargetBlock((HashSet<Byte>) null, 5);
+                final Block b = rayTrace(player);
                 if (b == null)
                     return msg(sender, cm.varPlayer(config.getString("message.cmd.notarget", MSG_CMD_NOTARGET), player));
                 if (b.getType() != Material.SIGN_POST && b.getType() != Material.WALL_SIGN)
@@ -144,14 +148,13 @@ public class SignChestShopCommandExecutor implements CommandExecutor
                 plugin.create.put(player.openInventory(i), b);
                 player.sendMessage(ChatColor.YELLOW + "Put all the items you want to " +
                         "sell in the shop's inventory.");
-            }
-            else if (args[0].equalsIgnoreCase("break")) {
+            } else if (args[0].equalsIgnoreCase("break")) {
                 if (noPerm(sender, "scs.create"))
                     return true;
                 if (noConsole(sender))
                     return true;
                 final Player player = (Player) sender;
-                final Block b = player.getTargetBlock((HashSet<Byte>) null, 5);
+                final Block b = rayTrace(player);
                 if (b == null)
                     return msg(sender, cm.varPlayer(config.getString("message.cmd.notarget", MSG_CMD_NOTARGET), player));
                 final Shop s = plugin.getShop(b);
@@ -257,8 +260,7 @@ public class SignChestShopCommandExecutor implements CommandExecutor
                 final Shop s = checkTarget(sender, "scs.admin", 2, 2, args.length, "scs setowner <name>");
                 if (s == null)
                     return true;
-                if (args[1].equalsIgnoreCase("none"))
-                {
+                if (args[1].equalsIgnoreCase("none")) {
                     s.setOwner((UUID) null);
                     return msg(sender, ChatColor.GREEN + "This shop no longer has an owner.");
                 }
@@ -300,8 +302,7 @@ public class SignChestShopCommandExecutor implements CommandExecutor
                 final Player player = (Player) sender;
                 if (checkOwner(player, s, "scs.bypass.settitle"))
                     return true;
-                if (args[0].equalsIgnoreCase("none"))
-                {
+                if (args[0].equalsIgnoreCase("none")) {
                     s.setTitle(null);
                     return msg(sender, cm.varPlayer(config.getString("message.settitle.remove", MSG_SETTITLE_REMOVE), player));
                 }
@@ -336,7 +337,6 @@ public class SignChestShopCommandExecutor implements CommandExecutor
     }
 
     private Shop checkTarget(final CommandSender sender, final String perm, final int argmin, final int argmax, final int argc, final String usage) {
-        // TODO Find alternative to getTargetBlock
         if (noPerm(sender, perm))
             return null;
         if (noConsole(sender))
@@ -347,7 +347,7 @@ public class SignChestShopCommandExecutor implements CommandExecutor
         }
         final Player player = (Player) sender;
         @SuppressWarnings("deprecation")
-        final Block b = player.getTargetBlock((HashSet<Byte>) null, 5);
+        final Block b = rayTrace(player);
         if (b == null) {
             msg(sender, cm.varPlayer(config.getString("message.cmd.notarget", MSG_CMD_NOTARGET), player));
             return null;
@@ -379,5 +379,17 @@ public class SignChestShopCommandExecutor implements CommandExecutor
             return false;
         sender.sendMessage(cm.color(config.getString("message.cmd.noperm", MSG_CMD_NOPERM)));
         return true;
+    }
+
+    private Block rayTrace(Player player) {
+        CraftWorld world = (CraftWorld) player.getWorld();
+        Location eye = player.getEyeLocation();
+        Vector target = eye.toVector().add(eye.getDirection().multiply(5));
+        MovingObjectPosition mop = world.getHandle().rayTrace(new Vec3D(eye.getX(), eye.getY(), eye.getZ()),
+                new Vec3D(target.getX(), target.getY(), target.getZ()));
+        if (mop != null) {
+            return player.getWorld().getBlockAt((int) mop.pos.x, (int) mop.pos.y, (int) mop.pos.z);
+        }
+        return null;
     }
 }
