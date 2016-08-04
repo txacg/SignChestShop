@@ -3,9 +3,9 @@ package co.technius.signchestshop;
 import co.technius.signchestshop.Shop.ShopMode;
 import co.technius.signchestshop.util.UUIDUtil;
 
-import net.minecraft.server.v1_9_R2.MovingObjectPosition;
-import net.minecraft.server.v1_9_R2.NBTTagCompound;
-import net.minecraft.server.v1_9_R2.Vec3D;
+import net.minecraft.server.v1_10_R1.MovingObjectPosition;
+import net.minecraft.server.v1_10_R1.NBTTagCompound;
+import net.minecraft.server.v1_10_R1.Vec3D;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -15,7 +15,7 @@ import org.bukkit.block.Sign;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_9_R2.CraftWorld;
+import org.bukkit.craftbukkit.v1_10_R1.CraftWorld;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -28,8 +28,6 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
-
-import static net.obnoxint.mcdev.signchestshop.R.*;
 
 public class SignChestShopCommandExecutor implements CommandExecutor {
 
@@ -148,7 +146,8 @@ public class SignChestShopCommandExecutor implements CommandExecutor {
                 plugin.create.put(player.openInventory(i), b);
                 player.sendMessage(ChatColor.YELLOW + "Put all the items you want to " +
                         "sell in the shop's inventory.");
-            } else if (args[0].equalsIgnoreCase("break")) {
+            }
+            else if (args[0].equalsIgnoreCase("break")) {
                 if (noPerm(sender, "scs.create"))
                     return true;
                 if (noConsole(sender))

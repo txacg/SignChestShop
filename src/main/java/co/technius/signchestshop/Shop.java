@@ -10,15 +10,15 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import net.minecraft.server.v1_9_R2.NBTBase;
-import net.minecraft.server.v1_9_R2.NBTTagCompound;
-import net.minecraft.server.v1_9_R2.NBTTagList;
+import net.minecraft.server.v1_10_R1.NBTBase;
+import net.minecraft.server.v1_10_R1.NBTTagCompound;
+import net.minecraft.server.v1_10_R1.NBTTagList;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_9_R2.inventory.CraftInventoryCustom;
-import org.bukkit.craftbukkit.v1_9_R2.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_10_R1.inventory.CraftInventoryCustom;
+import org.bukkit.craftbukkit.v1_10_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
@@ -64,8 +64,7 @@ public class Shop {
          * @return The ShopMode with the specified name, or null if not found.
          */
         public static ShopMode getByName(final String name) {
-            for (final ShopMode m : values())
-            {
+            for (final ShopMode m : values()) {
                 if (m.name().equalsIgnoreCase(name))
                     return m;
             }
@@ -154,7 +153,7 @@ public class Shop {
             if (c.c().size() == 0) {
                 i[a] = null;
             } else {
-                i[a] = CraftItemStack.asCraftMirror((net.minecraft.server.v1_9_R2.ItemStack.createStack(c)));
+                i[a] = CraftItemStack.asCraftMirror((net.minecraft.server.v1_10_R1.ItemStack.createStack(c)));
             }
         }
         return i;
@@ -175,7 +174,7 @@ public class Shop {
     /**
      * Returns the item at the specified slot.
      *
-     * @param index - The index of the item
+     * @param index         - The index of the item
      * @param withPriceText - If set to true, then the item will have the price lore attached
      * @return The item, or null if the specified index does not contain an item.
      */
@@ -184,7 +183,7 @@ public class Shop {
         if (index >= ilist.size() || index < 0)
             return null;
         final NBTTagCompound tag = ilist.get(index);
-        final net.minecraft.server.v1_9_R2.ItemStack item = net.minecraft.server.v1_9_R2.ItemStack.createStack(tag);
+        final net.minecraft.server.v1_10_R1.ItemStack item = net.minecraft.server.v1_10_R1.ItemStack.createStack(tag);
         if (withPriceText) {
             scs.addPrice(item);
         } else if (item.getTag() != null) {
@@ -218,7 +217,7 @@ public class Shop {
 
     /**
      * @return The name of the owner of this shop, or null if this shop has no owner.
-     *         This method is a blocking method.
+     * This method is a blocking method.
      */
     public String getOwnerName() {
         if (owner == null)
@@ -335,7 +334,7 @@ public class Shop {
      * This has the same effect as {@link #setItem(int, ItemStack, boolean)} with retainPrice as false.
      *
      * @param index - The index of the item.
-     * @param item - The {@link ItemStack}.
+     * @param item  - The {@link ItemStack}.
      */
     public void setItem(final int index, final ItemStack item) {
         setItem(index, item, false);
@@ -344,8 +343,8 @@ public class Shop {
     /**
      * Sets the item at the specified index.
      *
-     * @param index - The index of the item.
-     * @param item - The {@link ItemStack}.
+     * @param index       - The index of the item.
+     * @param item        - The {@link ItemStack}.
      * @param retainPrice - If this is true, then the price will be kept.
      */
     public void setItem(final int index, final ItemStack item, final boolean retainPrice) {
@@ -377,18 +376,16 @@ public class Shop {
      *
      * @param owner - The new owner of this shop, or null to remove the owner.
      * @deprecated This operation will call a blocking UUID conversion.
-     *             Use {@link #setOwner(UUID)} and {@link UUIDUtil#getUUID(String)} instead.
+     * Use {@link #setOwner(UUID)} and {@link UUIDUtil#getUUID(String)} instead.
      */
     @Deprecated
     public void setOwner(final String owner) {
         UUID id = null;
         if (owner != null) {
             final Future<UUID> f = UUIDUtil.getUUID(owner);
-            try
-            {
+            try {
                 id = f.get();
-            } catch (InterruptedException | ExecutionException e)
-            {
+            } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }
         }
@@ -405,8 +402,7 @@ public class Shop {
         if (owner == null) {
             data.remove("ownerUUIDMost");
             data.remove("ownerUUIDLeast");
-        }
-        else {
+        } else {
             data.setLong("ownerUUIDMost", owner.getMostSignificantBits());
             data.setLong("ownerUUIDLeast", owner.getLeastSignificantBits());
         }
@@ -481,8 +477,7 @@ public class Shop {
         lists.addAll(Arrays.asList(transactions.keySet(), edit, storage, price.keySet()));
         Iterator<InventoryView> it;
         for (final Set<InventoryView> l : lists) {
-            for (it = l.iterator(); it.hasNext();)
-            {
+            for (it = l.iterator(); it.hasNext(); ) {
                 it.next().close();
                 it.remove();
             }
@@ -495,17 +490,16 @@ public class Shop {
 
     protected void loadData() {
         final NBTTagList l = data.getList("storage", 10);
-        for (int i = 0; i < l.size(); i++)
-        {
+        for (int i = 0; i < l.size(); i++) {
             storageinv.setItem(i, CraftItemStack.asCraftMirror(
-                    net.minecraft.server.v1_9_R2.ItemStack.createStack(l.get(i))));
+                    net.minecraft.server.v1_10_R1.ItemStack.createStack(l.get(i))));
         }
         if (data.hasKey("ownerUUIDMost") && data.hasKey("ownerUUIDLeast")) {
             owner = new UUID(data.getLong("ownerUUIDMost"), data.getLong("ownerUUIDLeast"));
         }
     }
 
-    protected void setItem(final int index, final net.minecraft.server.v1_9_R2.ItemStack item, final boolean retainPrice) {
+    protected void setItem(final int index, final net.minecraft.server.v1_10_R1.ItemStack item, final boolean retainPrice) {
         final NBTTagList ilist = data.getList("items", 10);
         if (index >= ilist.size() || index < 0)
             throw new ArrayIndexOutOfBoundsException(index);
@@ -517,7 +511,7 @@ public class Shop {
         setItem(old, item, retainPrice);
     }
 
-    protected void setItem(final NBTTagCompound old, final net.minecraft.server.v1_9_R2.ItemStack nms, final boolean retainPrice) {
+    protected void setItem(final NBTTagCompound old, final net.minecraft.server.v1_10_R1.ItemStack nms, final boolean retainPrice) {
         final NBTTagCompound c = new NBTTagCompound();
         nms.save(c);
         for (final Object o : c.c()) {
@@ -527,8 +521,7 @@ public class Shop {
                 if (!retainPrice) {
                     old.remove("scs_price");
                 }
-            }
-            else if (old.hasKey(name)) {
+            } else if (old.hasKey(name)) {
                 old.set(name, b);
             } else {
                 old.remove(name);
@@ -536,10 +529,10 @@ public class Shop {
         }
     }
 
-    net.minecraft.server.v1_9_R2.ItemStack getRawItem(final int index) {
+    net.minecraft.server.v1_10_R1.ItemStack getRawItem(final int index) {
         final NBTTagList ilist = data.getList("items", 10);
         if (index >= ilist.size() || index < 0)
             return null;
-        return net.minecraft.server.v1_9_R2.ItemStack.createStack(ilist.get(index));
+        return net.minecraft.server.v1_10_R1.ItemStack.createStack(ilist.get(index));
     }
 }
