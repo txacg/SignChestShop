@@ -2,11 +2,9 @@ package co.technius.signchestshop;
 
 import co.technius.signchestshop.Shop.ShopMode;
 import co.technius.signchestshop.util.UUIDUtil;
-
 import net.minecraft.server.v1_10_R1.MovingObjectPosition;
 import net.minecraft.server.v1_10_R1.NBTTagCompound;
 import net.minecraft.server.v1_10_R1.Vec3D;
-
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -23,11 +21,12 @@ import org.bukkit.util.Vector;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
+
+import static net.obnoxint.mcdev.signchestshop.R.*;
 
 public class SignChestShopCommandExecutor implements CommandExecutor {
 
@@ -146,8 +145,7 @@ public class SignChestShopCommandExecutor implements CommandExecutor {
                 plugin.create.put(player.openInventory(i), b);
                 player.sendMessage(ChatColor.YELLOW + "Put all the items you want to " +
                         "sell in the shop's inventory.");
-            }
-            else if (args[0].equalsIgnoreCase("break")) {
+            } else if (args[0].equalsIgnoreCase("break")) {
                 if (noPerm(sender, "scs.create"))
                     return true;
                 if (noConsole(sender))
@@ -387,7 +385,16 @@ public class SignChestShopCommandExecutor implements CommandExecutor {
         MovingObjectPosition mop = world.getHandle().rayTrace(new Vec3D(eye.getX(), eye.getY(), eye.getZ()),
                 new Vec3D(target.getX(), target.getY(), target.getZ()));
         if (mop != null) {
-            return player.getWorld().getBlockAt((int) mop.pos.x, (int) mop.pos.y, (int) mop.pos.z);
+            double x = mop.pos.x;
+            double y = mop.pos.y;
+            double z = mop.pos.z;
+            if (x < 1.0) {
+                x = x - 1.0;
+            }
+            if (z < 1.0) {
+                z = z - 1.0;
+            }
+            return player.getWorld().getBlockAt((int) x, (int) y, (int) z);
         }
         return null;
     }
