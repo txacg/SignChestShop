@@ -5,6 +5,7 @@ public final class R {
     /* ***************** *
      * Message templates *
      * ***************** */
+    /*
     public static final String MSG_BUY_SUCCESS = "&e<itemcorrectu> bought for <price>!";
     public static final String MSG_BUY_SUCCESS_OWNED = "&e<itemcorrectu> bought from <owner> for <price>!";
     public static final String MSG_BUY_SUCCESS_TITLED = "&e<itemcorrectu> bought at <title> for <price>!";
@@ -50,22 +51,20 @@ public final class R {
     public static final String MSG_CMD_NOTARGET = "&cYou must target a SignChestShop!";
     public static final String MSG_CMD_NOPERM = "&cYou are not allowed to use this command!";
     public static final String MSG_CMD_NOTOWNED = "&cYou do not own this shop!";
+    */
 
-    /* ****************** *
-     * Configuration keys *
-     * ****************** */
     public static final String CFG_BUY_MODE = "amount";
-
     public static final boolean CFG_BUY_SHIFTCLICK = true;
     public static final boolean CFG_BUY_PERMS = false;
     public static final boolean CFG_BUY_PERMSID = false;
-
-    public static final String CFG_BUY_MODENAME = "Buy";
-    public static final String CFG_BUY_MODEEXP = "from";
-
     public static final boolean CFG_SELL_PERMS = false;
-    public static final boolean CFG_SELL_PERMSID = false;
 
+    //public static final String CFG_BUY_MODENAME = "Buy";
+    //public static final String CFG_BUY_MODEEXP = "from";
+    public static final boolean CFG_SELL_PERMSID = false;
+    public static final boolean CFG_SHOP_NOTIFICATIONS = true;
+
+    /*
     public static final String CFG_SELL_MODENAME = "Sell";
     public static final String CFG_SELL_MODEEXP = "to";
 
@@ -74,20 +73,22 @@ public final class R {
     public static final String CFG_PRICE_DISPLAY = "Display Only";
     public static final String CFG_PRICE_COST = "<rawprice> <curname>";
     public static final String CFG_PRICE_COSTMULTI = "<totalprice> <curname> total (<rawprice> <curname> each)";
-
-    public static final boolean CFG_SHOP_NOTIFICATIONS = true;
+    */
     public static final boolean CFG_SHOP_AUTO_LIMIT = true;
     public static final boolean CFG_SHOP_AUTO_OWNER = true;
     public static final boolean CFG_SHOP_FORCEEMPTY = true;
     public static final int CFG_SHOP_MINDECPLACES = 2;
-
-    public static final String CFG_SHOP_TITLE_DEFAULT = "<mode>";
-    public static final String CFG_SHOP_TITLE_OWNED = "<mode> <modeexp> <owner>";
-    public static final String CFG_SHOP_TITLE_TITLED = "<mode> <modeexp> <title>";
-    public static final String CFG_SHOP_TITLE_OWNED_TITLED = "<mode>: <title>";
-
+    //public static final String CFG_SHOP_TITLE_DEFAULT = "<mode>";
+    //public static final String CFG_SHOP_TITLE_OWNED = "<mode> <modeexp> <owner>";
+    //public static final String CFG_SHOP_TITLE_TITLED = "<mode> <modeexp> <title>";
+    //public static final String CFG_SHOP_TITLE_OWNED_TITLED = "<mode>: <title>";
     public static final boolean CFG_LOG_SHOP_CREATION = false;
+    /* ****************** *
+     * Configuration keys *
+     * ****************** */
+    public static String language = "en_US";
 
-    private R() {}
+    private R() {
+    }
 
 }

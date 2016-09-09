@@ -1,0 +1,126 @@
+internal:
+  info:
+    using_language: "Now using language: %s"
+message:
+  create:
+    must_empty: "&eThis sign must be empty!"
+    cancel: "&eShop creation cancelled."
+    success: "&eShop created!"
+    already_exists: "&eThere is already a shop here!"
+    title: "&cShop"
+    notify: "&aPut all the items you want to sell in the shop's inventory."
+  break:
+    success: "SignChestShop broken."
+    noperm: "&cYou are not allowed to break shops!"
+    perm: "&ePlease use &a/scs break &eto break this shop."
+  buy:
+    success: "&eyou bought {itemName} *{amount} &efrom %s for $%.2f"
+    fail: "&eYou need at least %.2f to buy this item!"
+    invalid: "&cYou can't do that!"
+    noperm: "&cYou are not allowed to buy from shops."
+    nopermid: "&cYou are not allowed to buy this item!"
+    notice: "&e<player> bought <price> worth of items from one of your shops!"
+  edit:
+    title: "Edit"
+    success: "&eSignChestShop edited!"
+  error:
+    not_int: "Not a valid integer"
+    not_double: "Not a valid number"
+  info:
+    info_0: "&bShop Information&6%s"
+    info_1: "&bOwner: &6%s"
+    info_2: "&bMode: &6%s"
+    info_3: "&bRuns out of stock: &6%s"
+  price:
+    cancel: "&eItem pricing cancelled."
+    set: "&ePrice set!"
+    title: "Price"
+  settitle:
+    success: "&eShop title set to \"%s\""
+    remove: "&eShop title removed!"
+    fail: "&cThe shop title can only have a maximum of 32 characters!"
+  sell:
+    success: "&eYou sold {itemName} *{amount} &eto %s for %.2f"
+    noperm: "&cYou are not allowed to sell to shops."
+    nopermid: "&cYou are not allowed to sell this item!"
+    invalid: "&cYou can't do that!"
+    fail: "&cThe owner of this shop doesn't have enough money to buy this item!"
+    nospace: "&cThis shop doesn't have space for your item!"
+    notice: "&e<player> sold <price> worth of items to one of your shops!"
+  setmode:
+    mode: "&cAcceptable modes: buy, sell"
+    success: "&aMode set to %s"
+  setowner:
+    none: "&aThis shop no longer has an owner."
+    invalid: "&c%s is not an actual player."
+    not_found: "%cThe player %s could not be found."
+    success: "&aThe owner of this shop has been set to %s"
+  setlimited:
+    success: "&cThis shop is now %s"
+    limited: "limited"
+    unlimited: "unlimited"
+  cmd:
+    notarget: "&cYou must target a SignChestShop!"
+    noperm: "&cYou are not allowed to use this command!"
+    notowned: "&cYou do not own this shop!"
+  help:
+    page: "&6%s Help (&b%d&6/&b%d&6), &b%d&6 total"
+  error:
+    not_int: "&cNot a valid integer"
+    not_double: "&cNot a valid number"
+price:
+  text: "&bPrice: &6<price>"
+  free: "Free"
+  display: "Display Only"
+  cost: "<rawprice> <curname>"
+  costmulti: "<totalprice> <curname> total (<rawprice> <curname> each)"
+sign:
+  line_0: "&bShop"
+  line_1: "Right click to"
+  line_2: "open!"
+  line_3: ""
+title:
+  buymode: "Buy from <owner> <title>"
+  sellmode: "Sell to <owner> <title>"
+log:
+  create: "%s created a SignChestShop at %d, %d, %d at world %s"
+command:
+  help:
+    description: "Displays this menu"
+    usage: "/scs help"
+  create:
+    description: "Creates a shop"
+    usage: "/scs create"
+  break:
+    description: "Deletes a shop"
+    usage: "/scs break"
+  price:
+    description: "Prices items in a shop"
+    usage: "/scs price"
+  edit:
+    description: "Edits a shop"
+    usage: "/scs edit"
+  info:
+    description: "Shows shop information"
+    usage: "/scs info"
+  setmode:
+    description: "Sets the mode of a shop"
+    usage: "/scs setmode <buy/sell>"
+  storage:
+    description: "Accesses a shop's storage"
+    usage: "/scs storage"
+  settitle:
+    description: "Sets the title of a shop"
+    usage: "/scs settitle <name>"
+  setowner:
+    description: "Sets the owner of a shop"
+    usage: "/scs setowner <owner>"
+  setlimited:
+    description: "Sets shop item availibility"
+    usage: "/scs setlimited <true/false>"
+  reload:
+    description: "Reloads the config"
+    usage: "/scs reload"
+  refresh:
+    description: "Updates the config"
+    usage: "/scs refresh"
