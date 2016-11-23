@@ -7,7 +7,7 @@ repositories {
 }
 
 dependencies {
-    compile name: 'spigot-1.10.2'
+    compile name: 'spigot-1.11'
     compile name: 'VaultAPI-1.6'
     compile name: 'nyaautils-v1.19'
 }
