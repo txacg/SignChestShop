@@ -4,10 +4,16 @@ repositories {
     flatDir {
         dirs 'libs'
     }
+    maven {
+        name 'nyaa'
+        url 'https://raw.githubusercontent.com/NyaaCat/nyaautils/maven-repo'
+    }
 }
 
 dependencies {
     compile name: 'spigot-1.11'
     compile name: 'VaultAPI-1.6'
-    compile name: 'nyaautils-v1.19'
+    compile('cat.nyaa:nyaautils:2.0-SNAPSHOT') {
+        transitive = false
+    }
 }
