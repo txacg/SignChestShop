@@ -11,7 +11,7 @@ repositories {
 }
 
 dependencies {
-    compile name: 'spigot-1.11'
+    compile name: 'spigot-1.11.2-R0.1-SNAPSHOT'
     compile name: 'VaultAPI-1.6'
     compile('cat.nyaa:nyaautils:2.0-SNAPSHOT') {
         transitive = false
